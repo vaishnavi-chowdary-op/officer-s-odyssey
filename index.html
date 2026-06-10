@@ -1,0 +1,1432 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Officer's Odyssey — Fantasy CGL Study Journey</title>
+    <!-- Tailwind support is integrated through Vite dev system -->
+    <link rel="stylesheet" href="/src/index.css" />
+    <!-- Lucide icons CDN for beautiful responsive vector shapes -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+  <body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-amber-500/30 selection:text-amber-200 overflow-x-hidden pt-16 md:pt-0">
+
+    <!-- Scenic Cozy late-night background images setup -->
+    <div class="fixed inset-0 pointer-events-none z-0">
+      <img
+        src="/src/assets/images/night_study_bg_1781091659542.png"
+        alt="Cozy anime room midnight view"
+        referrerPolicy="no-referrer"
+        class="absolute inset-0 h-full w-full object-cover object-center opacity-25 select-none scale-[1.02] filter blur-[0.5px]"
+      />
+      <!-- Dynamic lighting layers -->
+      <div class="absolute inset-0 bg-gradient-to-b from-slate-950/95 via-slate-950/80 to-slate-950/95"></div>
+    </div>
+
+    <!-- Active particle stream canvas layer -->
+    <canvas id="cosmic-particle-canvas" class="fixed inset-0 pointer-events-none z-10 opacity-60" style="mix-blend-mode: screen;"></canvas>
+
+    <!-- Flying XP indicator container -->
+    <div id="xp-fly-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Celebration Quest Confetti Layer -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-40 hidden"></canvas>
+
+    <!-- Level Up Modal overlay screen (hidden by default) -->
+    <div id="level-up-modal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-6 text-center hidden">
+      <div class="relative p-8 rounded-2xl bg-gradient-to-b from-slate-900 to-indigo-950 border-2 border-amber-400 max-w-lg shadow-[0_0_35px_rgba(245,158,11,0.25)] flex flex-col items-center">
+        <!-- Shiny trophy banner -->
+        <div class="h-20 w-20 rounded-full bg-amber-400/10 border-2 border-amber-400 flex items-center justify-center mb-6 animate-bounce">
+          <i data-lucide="trophy" class="h-10 w-10 text-amber-400"></i>
+        </div>
+
+        <span class="text-xs uppercase tracking-widest font-mono text-amber-400 font-bold">Officer Rank Level Up!</span>
+        <h2 class="text-4xl font-black text-white tracking-tight mt-1">LEVEL UP</h2>
+
+        <!-- Transition display -->
+        <div class="flex items-center gap-4 my-6 bg-slate-950/60 p-3.5 px-6 rounded-xl border border-slate-800">
+          <span id="modal-old-level" class="text-xl font-bold font-mono text-slate-500">Lv. 1</span>
+          <i data-lucide="arrow-right" class="h-5 w-5 text-amber-400"></i>
+          <span id="modal-new-level" class="text-3xl font-extrabold font-mono text-amber-300">Lv. 2</span>
+        </div>
+
+        <p class="text-sm font-semibold text-slate-300">Unlocking Royal Paymatrix Rank Title:</p>
+        <p id="modal-rank-title" class="text-xl font-bold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-rose-500 to-purple-600 mt-1.5 font-sans">
+          Tax Assistant (CBIC)
+        </p>
+        <p id="modal-rank-desc" class="text-xs text-slate-400 italic max-w-sm mt-2">
+          "Sorting critical ledgers of the state with sharp intellectual concentration."
+        </p>
+
+        <button
+          onclick="closeLevelUpModal()"
+          class="mt-8 h-11 w-full rounded-xl bg-amber-400 text-slate-950 font-bold uppercase tracking-wider hover:bg-amber-300 active:scale-95 transition-all text-sm cursor-pointer shadow-lg shadow-amber-500/10"
+        >
+          Assemble Roster & Resume Journey
+        </button>
+      </div>
+    </div>
+
+
+    <!-- Reset Progress Modal Overlay (hidden by default) -->
+    <div id="reset-progress-modal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-6 hidden">
+      <!-- Modal card (Phase 1) -->
+      <div id="reset-phase-1" class="relative p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-slate-900 to-rose-950/30 border-2 border-rose-500 max-w-lg shadow-[0_0_50px_rgba(239,68,68,0.2)] flex flex-col items-center">
+        <div class="h-16 w-16 rounded-full bg-rose-500/10 border-2 border-rose-500 flex items-center justify-center mb-5 text-rose-500">
+          <i data-lucide="skull" class="h-8 w-8 animate-pulse text-rose-500"></i>
+        </div>
+
+        <span class="text-xs uppercase tracking-widest font-mono text-rose-450 font-bold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">Severe Action Required</span>
+        <h2 class="text-2xl font-black text-white tracking-tight mt-1 text-center">CORRUPTION PURGE PROTOCOL</h2>
+
+        <!-- Warning content -->
+        <div class="my-4 bg-slate-950/70 p-4 rounded-xl border border-rose-500/20 text-left w-full">
+          <p class="text-xs font-bold text-rose-400 mb-2 leading-relaxed">
+            WARNING: This will permanently erase all Officer's Odyssey progress.
+          </p>
+          <p class="text-[11px] text-slate-350 leading-relaxed mb-2">
+            This operation is absolute and final. The following career registers will be incinerated from regional browser cache:
+          </p>
+          <ul class="text-[10px] font-mono text-rose-250 grid grid-cols-2 gap-x-4 gap-y-1 mt-2.5 list-disc pl-4">
+            <li>XP & Level Index</li>
+            <li>Rank & Title Grades</li>
+            <li>Daily Quests (Registry)</li>
+            <li>Study hour metrics</li>
+            <li>Grimoire Notes</li>
+            <li>Mock test history</li>
+            <li>Badges & Achievements</li>
+            <li>Consecutive Streaks</li>
+            <li>Recovery Shield Tokens</li>
+            <li>Today's Focus Statement</li>
+            <li>Local storage registers</li>
+          </ul>
+        </div>
+
+        <!-- Custom Input Verification -->
+        <div class="w-full mb-6 text-left">
+          <label for="reset-confirm-input" class="text-[10px] font-mono text-slate-400 block mb-1.5 uppercase font-bold text-center sm:text-left">To authorize oblivion, type the exact scroll phrase below:</label>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="reset-confirm-input" 
+              placeholder="RESET MY JOURNEY" 
+              autocomplete="off"
+              oninput="handleResetInputChange()"
+              class="w-full bg-slate-950 text-rose-300 font-mono text-sm uppercase tracking-widest font-bold placeholder:text-slate-800 p-3 rounded-lg border border-rose-900/50 hover:border-rose-700/80 focus:outline-none focus:ring-1 focus:ring-rose-500 transition-all text-center" 
+            />
+          </div>
+          <p class="text-[9px] text-slate-500 mt-1.5 italic font-mono text-center">Case-sensitive verification. Scribes must maintain absolute precision.</p>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-3 w-full">
+          <button 
+            onclick="closeResetProgressModal()" 
+            class="w-full sm:w-1/2 h-11 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 font-semibold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer">
+            Abort Action
+          </button>
+          <button 
+            id="btn-reset-proceed-phase-1"
+            disabled
+            onclick="advanceResetToPhase2()" 
+            class="w-full sm:w-1/2 h-11 rounded-lg bg-rose-950/60 hover:bg-rose-600 disabled:opacity-40 disabled:pointer-events-none text-rose-300 hover:text-white border border-rose-500/40 text-xs font-black uppercase tracking-wider transition-all duration-300 cursor-pointer flex items-center justify-center gap-1">
+            Validate Purge <i data-lucide="shield-alert" class="h-3.5 w-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Phase 2 Secondary Confirmation Card (hidden initially) -->
+      <div id="reset-phase-2" class="relative p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-slate-900 to-rose-950/60 border-2 border-red-500 max-w-sm shadow-[0_0_60px_rgba(220,38,38,0.4)] flex flex-col items-center hidden text-center">
+        <div class="h-16 w-16 rounded-full bg-red-600/20 border-2 border-red-500 flex items-center justify-center mb-5 text-red-500 font-sans">
+          <i data-lucide="alert-triangle" class="h-8 w-8 animate-bounce"></i>
+        </div>
+
+        <span class="text-xs uppercase tracking-widest font-mono text-red-450 font-bold bg-red-500/10 px-2.5 py-0.5 rounded border border-red-500/20 animate-pulse">Final Sanction Check</span>
+        <h2 class="text-xl font-black text-white tracking-widest mt-2 uppercase font-sans">Are you absolutely sure?</h2>
+        
+        <p class="text-xs text-slate-300 mt-3 leading-relaxed font-sans">
+          There is no backup, no retrieval, and no resurrection of your career scrolls. All badges, hours, and notes will be deleted permanently.
+        </p>
+
+        <!-- Final Confirmation Actions -->
+        <div class="flex flex-col gap-2 w-full mt-6">
+          <button 
+            onclick="executeAbsoluteReset()" 
+            class="w-full h-11 rounded-lg bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-widest transition-all duration-300 active:scale-95 cursor-pointer shadow-lg shadow-red-500/20">
+            YES, PURGE EVERYTHING
+          </button>
+          <button 
+            onclick="cancelResetAndBackToPhase1()" 
+            class="w-full h-11 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 font-semibold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer">
+            No, Abort Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- MOBILE HEADER TOP BAR -->
+    <div class="md:hidden fixed top-0 left-0 right-0 h-16 bg-slate-950/90 border-b border-slate-900/80 backdrop-blur-xl flex items-center justify-between px-6 z-35">
+      <div class="flex items-center gap-2.5">
+        <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-400 to-indigo-600 p-0.5 shadow-md">
+          <div class="h-full w-full bg-slate-950 rounded-[6px] flex items-center justify-center">
+            <i data-lucide="shield" class="h-4 w-4 text-amber-400 animate-pulse"></i>
+          </div>
+        </div>
+        <span class="font-sans font-extrabold text-sm tracking-wider text-slate-100 uppercase">Officer's Odyssey</span>
+      </div>
+      <button onclick="toggleSidebar(true)" class="p-2 rounded bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 cursor-pointer" title="Open Navigation Menu">
+        <i data-lucide="menu" class="h-4.5 w-4.5"></i>
+      </button>
+    </div>
+
+
+    <!-- FULL LAYOUT CONTAINER -->
+    <div class="min-h-screen flex flex-col md:flex-row relative z-20">
+
+      <!-- COLLAPSIBLE SIDEBAR -->
+      <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-950/95 border-r border-slate-900 backdrop-blur-xl -translate-x-full md:translate-x-0 transition-transform duration-300 flex flex-col justify-between">
+        <div class="flex flex-col flex-1 overflow-y-auto">
+          <!-- Brand Title -->
+          <div class="p-5 border-b border-slate-900 flex items-center gap-3">
+            <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-400 to-indigo-500 p-0.5 shadow-md">
+              <div class="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                <i data-lucide="shield" class="h-4.5 w-4.5 text-amber-400 animate-pulse"></i>
+              </div>
+            </div>
+            <div>
+              <h2 class="font-sans font-black text-xs tracking-wider text-white uppercase">Officer's Odyssey</h2>
+              <span class="text-[9px] font-mono text-slate-500">OFFICER COMMAND CENTER</span>
+            </div>
+          </div>
+
+          <!-- User Mini Profile -->
+          <div class="p-4 border-b border-slate-900 bg-slate-950/30 flex items-center gap-3">
+            <div class="h-10 w-10 rounded bg-indigo-950/50 border border-indigo-500/20 flex items-center justify-center text-amber-400 text-lg font-mono font-black shadow-inner" id="sidebar-level-circle">
+              1
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-bold text-slate-200 truncate" id="sidebar-username">Aspirant Officer</p>
+              <p class="text-[9px] font-mono text-indigo-400 truncate uppercase tracking-wider font-semibold" id="sidebar-rank-title">Recruit</p>
+            </div>
+          </div>
+
+          <!-- Navigation List (Tabs Selector) -->
+          <nav class="flex-1 p-3 space-y-1">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide border-l-2 transition-all cursor-pointer">
+              <i data-lucide="layout-dashboard" class="h-4 w-4 select-none"></i>
+              <span>Dashboard</span>
+            </button>
+
+            <button onclick="switchTab('quests')" id="nav-quests" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide border-l-2 transition-all cursor-pointer">
+              <i data-lucide="swords" class="h-4 w-4 select-none"></i>
+              <span>Daily Quests</span>
+            </button>
+
+            <button onclick="switchTab('pomodoro')" id="nav-pomodoro" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide border-l-2 transition-all cursor-pointer">
+              <i data-lucide="timer" class="h-4 w-4 select-none"></i>
+              <span>Pomodoro Chamber</span>
+            </button>
+
+            <button onclick="switchTab('mocktests')" id="nav-mocktests" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide border-l-2 transition-all cursor-pointer">
+              <i data-lucide="book-open" class="h-4 w-4 select-none"></i>
+              <span>Mock Test Records</span>
+            </button>
+
+            <button onclick="switchTab('notes')" id="nav-notes" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide border-l-2 transition-all cursor-pointer">
+              <i data-lucide="scroll" class="h-4 w-4 select-none"></i>
+              <span>Notes & Focus</span>
+            </button>
+
+            <button onclick="switchTab('achievements')" id="nav-achievements" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide border-l-2 transition-all cursor-pointer">
+              <i data-lucide="trophy" class="h-4 w-4 select-none"></i>
+              <span>Achievements</span>
+            </button>
+
+            <button onclick="switchTab('statistics')" id="nav-statistics" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide border-l-2 transition-all cursor-pointer">
+              <i data-lucide="bar-chart-2" class="h-4 w-4 select-none"></i>
+              <span>Journey Statistics</span>
+            </button>
+
+            <button onclick="switchTab('rankpath')" id="nav-rankpath" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide border-l-2 transition-all cursor-pointer">
+              <i data-lucide="award" class="h-4 w-4 select-none"></i>
+              <span>Officer Rank Path</span>
+            </button>
+
+            <button onclick="switchTab('settings')" id="nav-settings" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide border-l-2 transition-all cursor-pointer">
+              <i data-lucide="settings" class="h-4 w-4 select-none"></i>
+              <span>Settings</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Sidebar footer dismiss and copyright -->
+        <div class="p-4 border-t border-slate-900 bg-slate-950/40 text-center">
+          <button onclick="toggleSidebar(false)" class="md:hidden w-full h-9 rounded bg-slate-900 border border-slate-800 text-xs text-slate-450 hover:text-slate-200 mb-2 cursor-pointer transition-all">
+            Close Menu
+          </button>
+          <p class="text-[9px] font-mono text-slate-600">OFFICER'S ODYSSEY V3.0</p>
+        </div>
+      </aside>
+
+      <!-- SIDEBAR BACKGROUND BLUR RECOVERY OVERLAY (for mobile) -->
+      <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-35 hidden transition-all duration-350" onclick="toggleSidebar(false)"></div>
+
+
+      <!-- MAIN APPLICATION WORKSPACE -->
+      <div class="flex-1 min-w-0 flex flex-col md:pl-64 min-h-screen">
+        <main class="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6 pb-16">
+
+          <!-- TAB CONTENT: 🏰 DASHBOARD -->
+          <section id="tab-section-dashboard" class="tab-content hidden flex flex-col gap-6">
+            
+            <!-- OFFICER'S ODYSSEY MAIN HEADING BRAND BLOCK -->
+            <div class="text-left bg-gradient-to-r from-slate-900 to-indigo-950/20 p-6 rounded-2xl border border-slate-800/80 shadow-md">
+              <h1 class="text-2xl md:text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-amber-300 font-sans uppercase">OFFICER'S ODYSSEY</h1>
+              <p class="text-xs text-slate-300 mt-1 font-medium tracking-wide">Forge your path. Complete your quests. Rise through the ranks.</p>
+            </div>
+            
+            <!-- MASTER HEADER WITH AVATAR & QUOTE -->
+            <header id="personal-nexus-card" class="rounded-2xl border border-slate-700/30 bg-slate-900/40 p-5 md:p-6 backdrop-blur-xl relative overflow-hidden shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div class="absolute top-0 right-0 -mr-16 -mt-16 h-36 w-36 rounded-full bg-indigo-500/10 blur-3xl"></div>
+
+              <div class="flex items-center gap-4 relative z-10 w-full md:w-auto">
+                <!-- User Level Circle -->
+                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-indigo-600 p-0.5 shadow-md shadow-slate-950/45">
+                  <div class="flex h-full w-full flex-col items-center justify-center rounded-[14px] bg-slate-950 backdrop-blur-sm p-1 leading-none">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 font-mono">Rank</span>
+                    <span id="header-level-badge" class="text-2xl font-black text-amber-300 font-mono mt-0.5">1</span>
+                  </div>
+                </div>
+
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    <!-- Name editor toggle -->
+                    <div id="username-display-container" class="flex items-center gap-1.5 group">
+                      <h1 id="user-display-name" class="text-xl font-bold tracking-tight text-white group-hover:text-amber-100 transition-colors">
+                        Aspirant Officer
+                      </h1>
+                      <button
+                        onclick="toggleEditName(true)"
+                        class="text-slate-500 hover:text-slate-300 p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                        title="Adjust persona designation"
+                      >
+                        <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
+                      </button>
+                    </div>
+
+                    <form id="username-edit-form" onsubmit="saveUserName(event)" class="hidden flex gap-2 items-center">
+                      <input
+                        id="username-input"
+                        type="text"
+                        class="h-8 max-w-[200px] rounded border border-slate-700 bg-slate-950 text-sm font-bold text-white px-2.5 focus:border-indigo-400 focus:outline-none"
+                        value="Aspirant Officer"
+                        required
+                      />
+                      <button type="submit" class="h-8 w-8 hover:bg-slate-800 rounded flex items-center justify-center text-emerald-400 cursor-pointer">
+                        <i data-lucide="check" class="h-4 w-4"></i>
+                      </button>
+                      <button type="button" onclick="toggleEditName(false)" class="text-slate-500 hover:text-slate-300 text-xs shrink-0 px-1 font-mono">Cancel</button>
+                    </form>
+
+                    <span id="header-officer-grade" class="text-[10px] uppercase font-mono font-bold rounded-full px-2.5 py-0.5 border leading-none bg-indigo-500/10 text-indigo-300 border-indigo-500/20">
+                      CGL Cadet
+                    </span>
+                  </div>
+
+                  <!-- Stats Subtitles -->
+                  <div class="flex items-center gap-4 text-xs text-slate-400 mt-1.5 flex-wrap font-mono">
+                    <span class="flex items-center gap-1">
+                      <i data-lucide="flame" class="h-3.5 w-3.5 text-orange-400 animate-pulse"></i>
+                      STREAK: <strong id="header-streak-count" class="text-orange-400">0</strong> Days 🔥
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <i data-lucide="map" class="h-3.5 w-3.5 text-sky-400"></i>
+                      JOURNEY BEGAN: <strong id="header-days-since" class="text-sky-300">1</strong> Days Ago 🗺️
+                    </span>
+                    <span class="flex items-center gap-1.5 shrink-0">
+                      <i data-lucide="award" class="h-3.5 w-3.5 text-amber-400"></i>
+                      STATUS: <strong id="header-motivation-message" class="text-indigo-300 font-sans font-medium">Future Officer in Training.</strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Randomized motivating quote segment -->
+              <div class="self-stretch flex flex-col justify-center max-w-md bg-slate-950/45 p-4 rounded-xl border border-slate-800/80 italic md:bg-transparent md:border-none md:p-0">
+                <p id="quote-text-node" class="text-xs text-slate-300 leading-relaxed font-sans text-left md:text-right">
+                  "The ink of a late-night study session is the magic formula that transforms an aspirant into an officer."
+                </p>
+                <p id="quote-author-node" class="text-[10px] text-amber-400 font-mono font-semibold mt-1 text-left md:text-right">
+                  — Scribe of the Secretariat
+                </p>
+              </div>
+            </header>
+
+
+            <!-- BRIEF WELCOME MSG -->
+            <div class="text-xs text-slate-400 font-mono tracking-wider flex items-center justify-between border-b border-slate-900 pb-3">
+              <span>🏰 COMMAND CENTER SCHOLAR DASHBOARD</span>
+              <span id="current-utc-time-indicator"></span>
+            </div>
+
+
+            <!-- DASHBOARD SUMMARY CARDS GRID -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              
+              <!-- Card 1: 🔥 Current Streak -->
+              <div onclick="switchTab('quests')" class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-xl hover:border-orange-500/50 hover:bg-slate-900/60 hover:shadow-[0_0_20px_rgba(249,115,22,0.15)] cursor-pointer transition-all duration-300 group flex items-center justify-between">
+                <div class="flex items-center gap-4 min-w-0">
+                  <div class="h-12 w-12 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center border border-orange-500/20 group-hover:scale-105 transition-all shrink-0">
+                    <i data-lucide="flame" class="h-6 w-6"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-[10px] uppercase tracking-wider text-slate-500 font-mono font-bold">Current Streak</p>
+                    <h3 id="dash-streak-card-val" class="text-lg font-bold font-mono text-orange-400 mt-1 truncate">0 Days 🔥</h3>
+                  </div>
+                </div>
+                <i data-lucide="arrow-right" class="h-4 w-4 text-slate-650 group-hover:text-orange-400 transition-colors shrink-0"></i>
+              </div>
+
+              <!-- Card 2: 📚 Total Study Hours -->
+              <div onclick="switchTab('statistics')" class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-xl hover:border-indigo-500/50 hover:bg-slate-900/60 hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] cursor-pointer transition-all duration-300 group flex items-center justify-between">
+                <div class="flex items-center gap-4 min-w-0">
+                  <div class="h-12 w-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20 group-hover:scale-105 transition-all shrink-0">
+                    <i data-lucide="book-open" class="h-6 w-6"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-[10px] uppercase tracking-wider text-slate-500 font-mono font-bold">Total Study Hours</p>
+                    <h3 id="dash-hours-card-val" class="text-lg font-bold font-mono text-indigo-300 mt-1 truncate">0.0 Hours 📚</h3>
+                  </div>
+                </div>
+                <i data-lucide="arrow-right" class="h-4 w-4 text-slate-650 group-hover:text-indigo-400 transition-colors shrink-0"></i>
+              </div>
+
+              <!-- Card 3: ⚔️ Current Rank -->
+              <div onclick="switchTab('rankpath')" class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-xl hover:border-amber-400/50 hover:bg-slate-900/60 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] cursor-pointer transition-all duration-300 group flex items-center justify-between">
+                <div class="flex items-center gap-4 min-w-0">
+                  <div class="h-12 w-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20 group-hover:scale-105 transition-all shrink-0">
+                    <i data-lucide="crown" class="h-6 w-6"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-[10px] uppercase tracking-wider text-slate-500 font-mono font-bold">Current Rank</p>
+                    <h3 id="dash-rank-card-val" class="text-lg font-bold text-amber-300 mt-1 truncate">Recruit ⚔️</h3>
+                  </div>
+                </div>
+                <i data-lucide="arrow-right" class="h-4 w-4 text-slate-650 group-hover:text-amber-400 transition-colors shrink-0"></i>
+              </div>
+
+              <!-- Card 4: 🎯 Today's Progress -->
+              <div onclick="switchTab('quests')" class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-xl hover:border-emerald-500/50 hover:bg-slate-900/60 hover:shadow-[0_0_20px_rgba(52,211,153,0.15)] cursor-pointer transition-all duration-300 group flex flex-col justify-between gap-3">
+                <div class="flex items-center justify-between w-full min-w-0">
+                  <div class="flex items-center gap-4 min-w-0">
+                    <div class="h-12 w-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-105 transition-all shrink-0">
+                      <i data-lucide="target" class="h-6 w-6"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-[10px] uppercase tracking-wider text-slate-500 font-mono font-bold">Today's Progress</p>
+                      <h3 id="dash-quests-card-val" class="text-lg font-bold font-mono text-emerald-400 mt-1 truncate">0/0 Quests 🎯</h3>
+                    </div>
+                  </div>
+                  <i data-lucide="arrow-right" class="h-4 w-4 text-slate-650 group-hover:text-emerald-400 transition-colors shrink-0"></i>
+                </div>
+                <div class="w-full">
+                  <div class="h-1.5 w-full rounded-full bg-slate-950 p-[1px] border border-slate-800">
+                    <div id="dash-quests-mini-bar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width: 0%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 5: ⏳ Today's Pomodoros -->
+              <div onclick="switchTab('pomodoro')" class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-xl hover:border-purple-500/50 hover:bg-slate-900/60 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] cursor-pointer transition-all duration-300 group flex items-center justify-between">
+                <div class="flex items-center gap-4 min-w-0">
+                  <div class="h-12 w-12 rounded-xl bg-purple-500/10 text-purple-450 flex items-center justify-center border border-purple-500/20 group-hover:scale-105 transition-all shrink-0">
+                    <i data-lucide="hourglass" class="h-6 w-6 animate-spin" style="animation-duration: 20s;"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-[10px] uppercase tracking-wider text-slate-500 font-mono font-bold">Today's Pomodoros</p>
+                    <h3 id="dash-pomos-card-val" class="text-lg font-bold font-mono text-purple-300 mt-1 truncate">0 Sessions ⏳</h3>
+                  </div>
+                </div>
+                <i data-lucide="arrow-right" class="h-4 w-4 text-slate-650 group-hover:text-purple-400 transition-colors shrink-0"></i>
+              </div>
+
+              <!-- Card 6: 📈 Weekly Completion -->
+              <div onclick="switchTab('statistics')" class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-xl hover:border-pink-500/50 hover:bg-slate-900/60 hover:shadow-[0_0_20px_rgba(236,72,153,0.15)] cursor-pointer transition-all duration-300 group flex items-center justify-between">
+                <div class="flex items-center gap-4 min-w-0">
+                  <div class="h-12 w-12 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center border border-pink-500/20 group-hover:scale-105 transition-all shrink-0">
+                    <i data-lucide="bar-chart-3" class="h-6 w-6"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-[10px] uppercase tracking-wider text-slate-500 font-mono font-bold">Weekly Performance</p>
+                    <h3 id="dash-weekly-card-val" class="text-lg font-bold font-mono text-pink-300 mt-1 truncate">0.0 Peak Hours 📈</h3>
+                  </div>
+                </div>
+                <i data-lucide="arrow-right" class="h-4 w-4 text-slate-650 group-hover:text-pink-400 transition-colors shrink-0"></i>
+              </div>
+
+            </div>
+
+
+            <!-- RECENT HISTORY AND NOTIFICATION STREAM (DASHBOARD EXTRA) -->
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-5 backdrop-blur-xl flex flex-col md:flex-row gap-6 items-center justify-between mt-2">
+              <div class="space-y-1 text-left">
+                <h4 class="text-xs font-bold font-mono tracking-wider text-slate-300 uppercase flex items-center gap-1.5">
+                  <i data-lucide="sparkles" class="h-4 w-4 text-amber-400"></i>
+                  Ready to rise in Rank, Aspirant?
+                </h4>
+                <p class="text-xs text-slate-450">Complete daily tasks to gain XP, unlock custom titles, and achieve elite ranks.</p>
+              </div>
+              <button onclick="switchTab('quests')" class="h-10 px-5 rounded-lg bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-slate-950 text-xs font-extrabold uppercase tracking-wider hover:brightness-110 cursor-pointer shadow-lg transition-all active:scale-95 shrink-0">
+                Begin Quests ⚔️
+              </button>
+            </div>
+
+          </section>
+
+
+          <!-- TAB CONTENT: ⚔️ DAILY QUESTS -->
+          <section id="tab-section-quests" class="tab-content hidden flex flex-col gap-6">
+            
+            <div class="flex flex-col gap-1">
+              <h2 class="text-2xl font-black text-white flex items-center gap-2 tracking-tight">
+                <i data-lucide="swords" class="text-amber-400"></i> Daily Study Quests
+              </h2>
+              <p class="text-xs text-slate-400">Master your academic modules daily to claim sovereign XP and maintain your CGL streak.</p>
+            </div>
+
+            <!-- TODAY'S FOCUS SECTION -->
+            <div id="todays-focus-card" class="rounded-2xl border border-slate-700/40 bg-slate-900/60 p-5 backdrop-blur-xl relative">
+              <div class="absolute top-0 right-0 -mr-8 -mt-8 h-20 w-20 bg-amber-500/5 rounded-full blur-2xl"></div>
+              <div class="flex items-center justify-between mb-3 border-b border-slate-800/60 pb-2">
+                <h4 class="text-sm font-bold tracking-widest text-slate-300 uppercase flex items-center gap-1.5 font-sans">
+                  <i data-lucide="target" class="h-4 w-4 text-amber-400 animate-pulse"></i>
+                  Today's Core Focus 🎯
+                </h4>
+                <span id="focus-sync-status" class="rounded-xl px-2.5 py-0.5 text-[9px] font-mono tracking-wide uppercase bg-slate-950 text-slate-500 border border-slate-800">
+                  Awaiting
+                </span>
+              </div>
+              
+              <p class="text-xs text-slate-400 mb-3">Declare your main high-yield objective for today's study block.</p>
+              
+              <div class="flex flex-col gap-2 relative">
+                <input
+                  id="focus-input-field"
+                  type="text"
+                  oninput="handleFocusTyping(event)"
+                  placeholder="Declare your quest (e.g. Percentage Practice, Ancient History Revision, etc.)..."
+                  class="w-full h-10 rounded-lg border border-slate-800 bg-slate-950/80 px-3.5 text-sm text-slate-100 placeholder-slate-600 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 focus:outline-none transition-all shadow-inner"
+                />
+                
+                <!-- Quick Suggestions -->
+                <div class="flex flex-wrap gap-1.5 mt-1 items-center">
+                  <span class="text-[9px] text-slate-500 font-mono uppercase tracking-wider mr-1">Spell Ideas:</span>
+                  <button
+                    type="button"
+                    onclick="selectFocusSuggestion('Percentage Practice')"
+                    class="bg-slate-950/40 border border-slate-800/80 rounded-lg px-2 py-0.5 text-[10px] text-slate-400 hover:text-amber-300 hover:border-amber-500/30 active:scale-95 transition-all cursor-pointer"
+                  >
+                    Percentage Practice
+                  </button>
+                  <button
+                    type="button"
+                    onclick="selectFocusSuggestion('Ancient History Revision')"
+                    class="bg-slate-950/40 border border-slate-800/80 rounded-lg px-2 py-0.5 text-[10px] text-slate-400 hover:text-amber-300 hover:border-amber-500/30 active:scale-95 transition-all cursor-pointer"
+                  >
+                    Ancient History Revision
+                  </button>
+                  <button
+                    type="button"
+                    onclick="selectFocusSuggestion('Mock Test Analysis')"
+                    class="bg-slate-950/40 border border-slate-800/80 rounded-lg px-2 py-0.5 text-[10px] text-slate-400 hover:text-amber-300 hover:border-amber-500/30 active:scale-95 transition-all cursor-pointer"
+                  >
+                    Mock Test Analysis
+                  </button>
+                  <button
+                    type="button"
+                    onclick="selectFocusSuggestion('Vocabulary Building')"
+                    class="bg-slate-950/40 border border-slate-800/80 rounded-lg px-2 py-0.5 text-[10px] text-slate-400 hover:text-amber-300 hover:border-amber-500/30 active:scale-95 transition-all cursor-pointer"
+                  >
+                    Vocabulary Building
+                  </button>
+                </div>
+              </div>
+            </div>
+
+
+            <!-- DAILY CHECKLIST BASE CARD -->
+            <div id="quest-tracker-container" class="rounded-2xl border border-slate-700/40 bg-slate-900/60 p-5 backdrop-blur-xl relative">
+              
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <h4 class="text-sm font-bold tracking-widest text-slate-300 uppercase">SUBJECT QUESTS ROSTER</h4>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-1">Conquer your daily targets to gain XP and raise your pay matrix grade.</p>
+                </div>
+
+                <div class="flex items-center gap-3 self-start sm:self-center">
+                  <button
+                    onclick="resetAllTasksState()"
+                    class="group flex h-9 items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950 px-3 text-xs text-slate-400 hover:text-slate-100 hover:border-slate-700 hover:bg-slate-900 transition-all font-mono cursor-pointer"
+                    title="Reset today's checklists"
+                  >
+                    <i data-lucide="rotate-ccw" class="h-3.5 w-3.5 transition-transform duration-500"></i>
+                    Reset Quests
+                  </button>
+
+                  <button
+                    onclick="toggleTaskForm()"
+                    class="flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 text-xs font-semibold text-white hover:bg-indigo-500 border border-indigo-500/10 shadow-lg shadow-indigo-600/12 transition-all cursor-pointer"
+                  >
+                    <i data-lucide="plus" class="h-4 w-4"></i>
+                    Add Custom Quest
+                  </button>
+                </div>
+              </div>
+
+              <!-- Dynamic Completion metric text & bars -->
+              <div class="mt-5">
+                <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1.5">
+                  <span id="quest-fraction-stats">Progress: 0/0 Completed</span>
+                  <span id="quest-percent-stats">0%</span>
+                </div>
+                <div class="h-2 w-full rounded-full bg-slate-950 p-0.5 border border-slate-800/60">
+                  <div id="quest-overall-bar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-indigo-500 transition-all duration-500" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <!-- Quest Formulation insertion window element -->
+              <form id="new-quest-form" onsubmit="handleAddTaskSubmit(event)" class="hidden overflow-hidden mt-4 p-4 rounded-xl border border-slate-800 bg-slate-950/60 flex flex-col gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div class="md:col-span-2">
+                    <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">Quest Title</label>
+                    <input
+                      id="new-quest-title"
+                      type="text"
+                      required
+                      placeholder="e.g. Solve 50 profit and loss spells..."
+                      class="w-full h-10 rounded-lg border border-slate-800 bg-slate-900 px-3.5 text-sm text-slate-100 placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">Guild / Subject</label>
+                    <select
+                      id="new-quest-category"
+                      class="w-full h-10 rounded-lg border border-slate-800 bg-slate-900 px-2.5 text-sm text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer"
+                    >
+                      <option value="Quant">Quant Lore</option>
+                      <option value="Reasoning">Reasoning Maze</option>
+                      <option value="English">English Verbs</option>
+                      <option value="GA">General Awareness</option>
+                      <option value="Current Affairs">Chronography</option>
+                      <option value="Mock Test">Milestone Trials</option>
+                      <option value="Revision">Aura Revision</option>
+                      <option value="Custom">Custom Trial</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="flex gap-2 justify-end mt-1">
+                  <button
+                    type="button"
+                    onclick="toggleTaskForm()"
+                    class="h-9 rounded-lg px-4 text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-slate-200 transition-all border border-slate-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    class="h-9 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-4 text-xs font-semibold text-white transition-all border border-indigo-500/10"
+                  >
+                    Confirm Quest
+                  </button>
+                </div>
+              </form>
+
+              <!-- Dynamic injection point for our tasks checklists -->
+              <div id="tasks-checklist-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-5"></div>
+            </div>
+
+
+            <!-- MISSED QUEST RECOVERY SYSTEM SLATE -->
+            <div id="quest-recovery-slate-container" class="rounded-2xl border border-indigo-950 bg-slate-900/60 p-5 backdrop-blur-xl relative overflow-hidden flex flex-col gap-4">
+              <div class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-indigo-500/5 blur-xl pointer-events-none"></div>
+
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-3">
+                <div class="flex items-center gap-2">
+                  <div class="h-8 w-8 rounded bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <i data-lucide="shield-alert" class="h-4.5 w-4.5 animate-pulse"></i>
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-bold tracking-widest text-slate-200 uppercase">Missed Quest Recovery Slate</h4>
+                    <p class="text-[10px] text-slate-500 uppercase font-mono">Streak Protection Matrix</p>
+                  </div>
+                </div>
+                
+                <div class="flex items-center gap-1 font-mono text-xs font-bold text-emerald-400 bg-emerald-400/5 border border-emerald-400/15 py-1 px-3 rounded-full shrink-0">
+                  <i data-lucide="sparkles" class="h-3.5 w-3.5 animate-spin" style="animation-duration: 8s;"></i>
+                  <span>Streak Recovery Tokens: <strong id="recovery-token-display-numeric">X</strong></span>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-450 leading-relaxed">
+                Consistency is forged over months, not single days. In our sanctuary, missed days are automatically resolved as peaceful <strong class="text-indigo-400">🌙 Rest Days</strong> rather than painful penalties. Rest protects your streak, automatic recovery shields drop free <strong class="text-indigo-300">every 14 days</strong> of your training.
+              </p>
+
+              <!-- Recovery Rules boxes -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 flex flex-col gap-1.5">
+                  <span class="text-[10px] uppercase font-mono text-purple-350 font-bold flex items-center gap-1">
+                    <span class="h-1.5 w-1.5 rounded-full bg-purple-500"></span>
+                    Rest Day Rules
+                  </span>
+                  <p class="text-[11px] text-slate-450">Zeros out task requirements for the sunset. Your high combo continues unharmed.</p>
+                </div>
+                <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 flex flex-col gap-1.5">
+                  <span class="text-[10px] uppercase font-mono text-emerald-350 font-bold flex items-center gap-1">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                    Drip Interval
+                  </span>
+                  <p class="text-[11px] text-slate-450">Claim +1 free recovery shield automatically every 14 days of your journal timeline.</p>
+                </div>
+                <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 flex flex-col gap-1.5">
+                  <span class="text-[10px] uppercase font-mono text-amber-350 font-bold flex items-center gap-1">
+                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Autopilot Protection
+                  </span>
+                  <p class="text-[11px] text-slate-450">Tokens are consumed automatically when you take a midnight study pause.</p>
+                </div>
+              </div>
+
+              <!-- Motivational space -->
+              <div class="bg-slate-955/10 border border-slate-800/80 p-4 rounded-xl italic text-xs text-center text-slate-350 font-sans tracking-wide space-y-1 mt-1">
+                <p id="recovery-quote-placeholder">"Even heroes require rest. A pause is not the end of the journey."</p>
+                <span class="text-[10px] uppercase font-mono font-bold text-indigo-400 not-italic block mt-1">— SCROLL OF CONSISTENCY</span>
+              </div>
+
+            </div>
+
+          </section>
+
+
+          <!-- TAB CONTENT: ⏳ POMODORO CHAMBER -->
+          <section id="tab-section-pomodoro" class="tab-content hidden flex flex-col gap-6">
+            
+            <div class="flex flex-col gap-1">
+              <h2 class="text-2xl font-black text-white flex items-center gap-2 tracking-tight">
+                <i data-lucide="timer" class="text-indigo-400"></i> Focus Pomodoro Chamber
+              </h2>
+              <p class="text-xs text-slate-400">Charge the focus crystal under cozy late-night lamplight. Gather deep brain capacity and XP spells.</p>
+            </div>
+
+            <!-- THE FOCUS TIMER CARD -->
+            <div id="pomodoro-chamber" class="rounded-2xl border border-slate-700/40 bg-slate-900/60 p-6 backdrop-blur-xl relative overflow-hidden flex flex-col items-center">
+              <!-- Glowing space nodes -->
+              <div class="absolute top-1/2 left-1/2 -ml-20 -mt-20 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"></div>
+
+              <div class="w-full flex items-center justify-between mb-4 pb-2 border-b border-slate-800/40">
+                <div>
+                  <h4 class="text-sm font-bold tracking-widest text-slate-300 uppercase flex items-center gap-1.5">
+                    <i data-lucide="clock" class="h-4 w-4 text-indigo-400"></i>
+                    Focus Crystal Timer
+                  </h4>
+                  <p class="text-xs text-slate-400 mt-0.5">Charge focus state to gather high XP & mental capacity.</p>
+                </div>
+                <div id="timer-done-indicator" class="rounded bg-slate-950 px-2.5 py-1 text-xs font-mono text-indigo-300 border border-slate-800">
+                  Chamber: 0 Done
+                </div>
+              </div>
+
+              <!-- Mode selector tabs -->
+              <div class="flex gap-2 bg-slate-950/65 p-1 rounded-xl border border-slate-800/80 mb-5 relative z-10 w-full max-w-[320px]">
+                <button
+                  onclick="setTimerMode('study')"
+                  id="mode-btn-study"
+                  class="flex-1 rounded-lg py-1.5 text-[11px] font-bold uppercase tracking-wider outline-none transition-all cursor-pointer bg-slate-900 text-amber-300 border border-slate-800"
+                >
+                  STUDY
+                </button>
+                <button
+                  onclick="setTimerMode('shortRest')"
+                  id="mode-btn-short"
+                  class="flex-1 rounded-lg py-1.5 text-[11px] font-bold uppercase tracking-wider outline-none transition-all cursor-pointer text-slate-505 hover:text-slate-300"
+                >
+                  SHORT REST
+                </button>
+                <button
+                  onclick="setTimerMode('longRest')"
+                  id="mode-btn-long"
+                  class="flex-1 rounded-lg py-1.5 text-[11px] font-bold uppercase tracking-wider outline-none transition-all cursor-pointer text-slate-505 hover:text-slate-300"
+                >
+                  LONG REST
+                </button>
+              </div>
+
+              <!-- Circular progress count SVG display -->
+              <div class="relative flex items-center justify-center my-4">
+                <div id="timer-bg-glow" class="absolute h-36 w-36 rounded-full opacity-10 transition-colors duration-500 blur-md pointer-events-none bg-amber-500"></div>
+
+                <svg class="h-44 w-44 -rotate-90">
+                  <circle cx="88" cy="88" r="80" class="stroke-slate-950 fill-none" stroke-width="10"></circle>
+                  <circle
+                    id="timer-progress-ring"
+                    cx="88" cy="88" r="80"
+                    class="fill-none transition-all duration-300 stroke-amber-500"
+                    stroke-width="8"
+                    stroke-dasharray="502.65"
+                    stroke-dashoffset="502.65"
+                    stroke-linecap="round"
+                    style="filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4));"
+                  ></circle>
+                </svg>
+
+                <!-- Central status text overlays -->
+                <div class="absolute flex flex-col items-center">
+                  <span id="timer-time-display" class="text-3xl font-black font-mono tracking-tight text-white select-none">25:00</span>
+                  <span id="timer-status-tag" class="text-[10px] font-semibold tracking-wide uppercase text-amber-400 select-none animate-pulse flex items-center gap-1 mt-0.5">
+                    <i data-lucide="moon" class="h-2.5 w-2.5"></i>
+                    focusing
+                  </span>
+                </div>
+              </div>
+
+              <p id="timer-subtitle" class="text-xs text-slate-400 mt-2 text-center h-4 italic">
+                "Deep focus, no distractions."
+              </p>
+
+              <!-- Physical Controls button wraps -->
+              <div class="flex gap-3 mt-6 w-full relative z-10 justify-center">
+                <button
+                  onclick="toggleTimer()"
+                  id="timer-trigger-btn"
+                  class="flex h-11 items-center justify-center gap-2 rounded-xl px-7 text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer bg-amber-500 text-slate-950 border-amber-400/25 hover:bg-amber-400 hover:scale-[1.01] shadow-lg shadow-amber-500/10"
+                >
+                  <i id="btn-icon-play" data-lucide="play" class="h-4 w-4"></i>
+                  Begin Grind
+                </button>
+
+                <button
+                  onclick="resetTimer()"
+                  class="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-slate-200 hover:border-slate-700 transition-all cursor-pointer"
+                  title="Reset timer"
+                >
+                  <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+                </button>
+              </div>
+
+              <div class="mt-6 w-full flex items-center justify-center gap-2 p-2.5 bg-slate-950/45 rounded-xl border border-slate-800/60 text-center">
+                <span class="flex h-1.5 w-1.5 rounded-full bg-amber-400"></span>
+                <span class="text-[10px] text-slate-400 font-mono">
+                  Spell complete awards <strong class="text-amber-300">+50 XP</strong> & <strong class="text-indigo-300">+0.4 hrs Study</strong>
+                </span>
+              </div>
+            </div>
+
+            <!-- COMPLETED FOCUS SESSIONS LOG -->
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 flex flex-col gap-4">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <span class="text-xs font-bold text-slate-200 uppercase tracking-widest flex items-center gap-1.5">
+                  <i data-lucide="scroll" class="h-4 w-4 text-amber-500"></i> Current Focus Session Log
+                </span>
+                <span class="text-[10px] font-mono text-slate-500 uppercase">Recent Sunset Blocks</span>
+              </div>
+              <div id="sessions-recorded-list" class="flex flex-col gap-2 max-h-[250px] overflow-y-auto pr-1">
+                <!-- Dyn content -->
+              </div>
+            </div>
+
+          </section>
+
+
+          <!-- TAB CONTENT: 📚 MOCK TEST RECORDS -->
+          <section id="tab-section-mocktests" class="tab-content hidden flex flex-col gap-6">
+            
+            <div class="flex flex-col gap-1">
+              <h2 class="text-2xl font-black text-white flex items-center gap-2 tracking-tight">
+                <i data-lucide="book-open" class="text-emerald-400"></i> Mock Test records
+              </h2>
+              <p class="text-xs text-slate-400">Chronicle your mock tests, monitor score metrics and map your improvement graph over time.</p>
+            </div>
+
+            <!-- SCORE AND HISTORICAL LOG LAYOUT -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              
+              <!-- LEFT FORM PANEL -->
+              <div class="lg:col-span-4 flex flex-col gap-6">
+                <!-- Add Score Card -->
+                <div class="rounded-2xl border border-slate-850 bg-slate-900/60 p-5 backdrop-blur-xl">
+                  <h4 class="text-sm font-bold uppercase tracking-wider text-slate-200 mb-3 border-b border-slate-800 pb-2 flex items-center gap-1.5">
+                    <i data-lucide="plus-circle" class="h-4.5 w-4.5 text-emerald-400"></i> Add Mock Test Score
+                  </h4>
+                  
+                  <form id="mock-test-form" onsubmit="handleMockSubmit(event)" class="flex flex-col gap-4">
+                    <div>
+                      <label class="block text-[10px] uppercase tracking-wider font-mono text-slate-400 mb-1.5">Mock Score (Out of 200)</label>
+                      <input
+                        id="mock-score-input"
+                        type="number"
+                        min="0"
+                        max="200"
+                        step="0.25"
+                        required
+                        placeholder="e.g. 142.5"
+                        class="w-full h-10 rounded-lg border border-slate-800 bg-slate-950 px-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-[10px] uppercase tracking-wider font-mono text-slate-400 mb-1.5">Date of Trial</label>
+                      <input
+                        id="mock-date-input"
+                        type="date"
+                        required
+                        class="w-full h-10 rounded-lg border border-slate-800 bg-slate-950 px-3 text-sm text-slate-200 focus:border-emerald-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-[10px] uppercase tracking-wider font-mono text-slate-400 mb-1.5">Aura Notes / Bottlenecks</label>
+                      <textarea
+                        id="mock-notes-input"
+                        rows="3"
+                        placeholder="e.g. English comprehension was high tier, but Quant geometry calculations were lagging..."
+                        class="w-full p-3 text-xs text-slate-200 rounded-lg border border-slate-800 bg-slate-950 focus:border-emerald-400 focus:outline-none"
+                      ></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full h-10 rounded-lg bg-emerald-650 hover:bg-emerald-500 font-bold uppercase tracking-wider text-xs text-white border border-emerald-500/10 shadow-lg shadow-emerald-600/10 cursor-pointer active:scale-97 transition-all">
+                      Save Record Spell
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+
+              <!-- RIGHT CHART & STATS PANEL -->
+              <div class="lg:col-span-8 flex flex-col gap-6">
+                <!-- BENTO METRICS FOR MOCK TESTS -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <!-- Metric A -->
+                  <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-3 text-center">
+                    <span class="text-[9px] uppercase font-mono text-slate-500 block">Total Trials</span>
+                    <strong id="mock-stat-total" class="text-xl font-bold font-mono text-emerald-400 mt-1 block">0</strong>
+                  </div>
+                  <!-- Metric B -->
+                  <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-3 text-center">
+                    <span class="text-[9px] uppercase font-mono text-slate-500 block">Peak Score</span>
+                    <strong id="mock-stat-peak" class="text-xl font-bold font-mono text-amber-300 mt-1 block">0.0</strong>
+                  </div>
+                  <!-- Metric C -->
+                  <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-3 text-center">
+                    <span class="text-[9px] uppercase font-mono text-slate-500 block">Average score</span>
+                    <strong id="mock-stat-avg" class="text-xl font-bold font-mono text-blue-300 mt-1 block">0.0</strong>
+                  </div>
+                  <!-- Metric D -->
+                  <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-3 text-center">
+                    <span class="text-[9px] uppercase font-mono text-slate-500 block">Latest Score</span>
+                    <strong id="mock-stat-latest" class="text-xl font-bold font-mono text-purple-300 mt-1 block">0.0</strong>
+                  </div>
+                </div>
+
+                <!-- DYNAMIC SVG SCORE PATH CHART -->
+                <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 flex flex-col gap-2 min-h-[260px]">
+                  <div>
+                    <h5 class="text-xs uppercase font-mono text-slate-300 font-bold flex items-center gap-1">
+                      <i data-lucide="trending-up" class="h-4 w-4 text-emerald-400 animate-pulse"></i> Score Progress Trail Chart
+                    </h5>
+                    <p class="text-[10px] text-slate-500 tracking-wide mt-0.5">Visual representation of academic growth indexes.</p>
+                  </div>
+                  
+                  <div id="mock-chart-container" class="flex-1 w-full bg-slate-950/40 p-2.5 rounded-xl border border-slate-850 flex items-center justify-center min-h-[170px] relative overflow-hidden">
+                    <!-- Chart dynamically drawn inside -->
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+
+            <!-- HISTORY ARCHIVE LIST -->
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 mt-2">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-805">
+                <span class="text-xs uppercase font-mono text-slate-300 font-bold flex items-center gap-1.5">
+                  <i data-lucide="archive" class="h-4 w-4 text-emerald-400"></i> Score History Registry
+                </span>
+                <span class="text-[10px] font-mono text-slate-500 uppercase">Chronological order (Newest first)</span>
+              </div>
+
+              <!-- List entry items -->
+              <div id="mock-tests-list-entries" class="flex flex-col gap-3 mt-4 overflow-y-auto max-h-[300px] pr-1">
+                <!-- If no tests exist display -->
+                <div class="flex flex-col items-center justify-center p-8 text-center text-slate-500 italic text-xs">
+                  "No mock tests recorded yet. Complete a challenge to begin your record."
+                </div>
+              </div>
+            </div>
+
+          </section>
+
+
+          <!-- TAB CONTENT: 📝 NOTES & FOCUS -->
+          <section id="tab-section-notes" class="tab-content hidden flex flex-col gap-6">
+            
+            <div class="flex flex-col gap-1">
+              <h2 class="text-2xl font-black text-white flex items-center gap-2 tracking-tight">
+                <i data-lucide="scroll" class="text-amber-400"></i> Grimoire Notes & Focus Command
+              </h2>
+              <p class="text-xs text-slate-400">Draft formulas, memory models, current affairs updates, and mental shortcuts securely in browser memory.</p>
+            </div>
+
+            <!-- GRIMOIRE REVISION SLATE AREA -->
+            <div id="notes-desktop-hub" class="rounded-2xl border border-slate-700/40 bg-slate-900/60 p-5 backdrop-blur-xl flex flex-col min-h-[460px]">
+              <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/60">
+                <div>
+                  <h4 class="text-sm font-bold tracking-widest text-slate-300 uppercase flex items-center gap-1.5">
+                    <i data-lucide="scroll" class="h-4 w-4 text-amber-400"></i>
+                    Grimoire Revision Notes
+                  </h4>
+                  <p class="text-xs text-slate-400 mt-0.5">Pen down flashcards, formulas, and late-night shortcuts.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span id="notes-word-count" class="text-[10px] text-slate-500 font-mono hidden">0 chars</span>
+                  <span id="notes-sync-status" class="rounded-xl px-2.5 py-0.5 text-[9px] font-mono leading-none tracking-wide border uppercase bg-emerald-500/10 text-emerald-400 border-emerald-500/10">
+                    Synced
+                  </span>
+                </div>
+              </div>
+
+              <!-- Template shortcut inserts -->
+              <div class="flex flex-wrap gap-2 mb-4">
+                <button
+                  onclick="insertNoteTemplate('quant')"
+                  class="flex items-center gap-1.5 rounded-lg bg-slate-950/60 border border-slate-805 p-2 px-4.5 text-[11px] font-bold text-slate-300 hover:text-white hover:border-slate-700 active:scale-95 transition-all cursor-pointer"
+                >
+                  <i data-lucide="calculator" class="h-3.5 w-3.5 text-amber-400"></i>
+                  Math Formulas
+                </button>
+                <button
+                  onclick="insertNoteTemplate('vocab')"
+                  class="flex items-center gap-1.5 rounded-lg bg-slate-950/60 border border-slate-805 p-2 px-4.5 text-[11px] font-bold text-slate-300 hover:text-white hover:border-slate-700 active:scale-95 transition-all cursor-pointer"
+                >
+                  <i data-lucide="book-open" class="h-3.5 w-3.5 text-emerald-400"></i>
+                  Vocab / Idioms
+                </button>
+                <button
+                  onclick="insertNoteTemplate('ga')"
+                  class="flex items-center gap-1.5 rounded-lg bg-slate-950/60 border border-slate-805 p-2 px-4.5 text-[11px] font-bold text-slate-300 hover:text-white hover:border-slate-700 active:scale-95 transition-all cursor-pointer"
+                >
+                  <i data-lucide="sparkles" class="h-3.5 w-3.5 text-cyan-400"></i>
+                  GA Fact Sheet
+                </button>
+              </div>
+
+              <!-- Text drafting area -->
+              <div class="flex-1 min-h-[280px] relative bg-slate-950/30 rounded-xl border border-slate-800/80 focus-within:border-indigo-500/50 transition-all overflow-hidden flex flex-col">
+                <div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-slate-800 pointer-events-none"></div>
+                <div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-slate-800 pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-slate-800 pointer-events-none"></div>
+                <div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-slate-800 pointer-events-none"></div>
+
+                <textarea
+                  id="notes-textarea"
+                  oninput="handleNoteTyping(event)"
+                  placeholder="✍️ Chant your spells... Type mathematical formulae, current affairs archives, or mock exam lessons here. Every spell autosaves instantly in local cache."
+                  class="w-full flex-1 p-5 bg-transparent text-sm text-slate-205 placeholder-slate-600 border-none outline-none focus:ring-0 resize-none font-sans leading-relaxed overflow-y-auto"
+                ></textarea>
+              </div>
+
+              <div class="mt-4 text-[10px] text-slate-500 font-mono italic flex items-center justify-between">
+                <span>*Persists automatically in browser memory across sessions</span>
+                <span class="flex items-center gap-1 font-sans">
+                  <i data-lucide="bookmark" class="h-3 w-3 text-amber-500 animate-pulse"></i>
+                  Scholar's Slate
+                </span>
+              </div>
+            </div>
+
+          </section>
+
+
+          <!-- TAB CONTENT: 🏆 ACHIEVEMENTS -->
+          <section id="tab-section-achievements" class="tab-content hidden flex flex-col gap-6">
+            
+            <div class="flex flex-col gap-1">
+              <h2 class="text-2xl font-black text-white flex items-center gap-2 tracking-tight">
+                <i data-lucide="trophy" class="text-amber-400"></i> Legendary achievements
+              </h2>
+              <p class="text-xs text-slate-400">Command prestigious insignias as physical testaments of your daily preparation consistency.</p>
+            </div>
+
+            <!-- ACHIEVEMENTS MEDALS & BADGES CARD -->
+            <div class="rounded-2xl border border-slate-800/85 bg-slate-900/40 p-5 backdrop-blur-md">
+              <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800/60">
+                <div>
+                  <h4 class="text-sm font-bold tracking-wide text-slate-250 uppercase flex items-center gap-2">
+                    <i data-lucide="award" class="h-4 w-4 text-amber-400 animate-bounce"></i>
+                    Officer Honor Roster
+                  </h4>
+                  <p class="text-[11px] text-slate-450 mt-0.5">Fulfill specific study parameters to trigger trophy unlocks.</p>
+                </div>
+                <span id="badges-unlocked-fraction" class="rounded bg-slate-950 px-2.5 py-1 text-xs font-mono font-bold text-slate-300 border border-slate-800 shadow-inner">
+                  0 / 6 Unlocked
+                </span>
+              </div>
+
+              <!-- Grid dynamic cards -->
+              <div id="badges-grid-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-2">
+                <!-- Dyn popped -->
+              </div>
+            </div>
+
+          </section>
+
+
+          <!-- TAB CONTENT: 📈 JOURNEY STATISTICS -->
+          <section id="tab-section-statistics" class="tab-content hidden flex flex-col gap-6">
+            
+            <div class="flex flex-col gap-1">
+              <h2 class="text-2xl font-black text-white flex items-center gap-2 tracking-tight">
+                <i data-lucide="bar-chart-2" class="text-sky-400"></i> Journey statistics
+              </h2>
+              <p class="text-xs text-slate-400">Monitor overall progress percentages, weekly trail hours and subject guild expertise metrics.</p>
+            </div>
+
+            <!-- DYNAMIC METERS -->
+            <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+              
+              <!-- 1. Circular progress indicators card -->
+              <div class="rounded-2xl border border-slate-700/40 bg-slate-900/60 p-5 backdrop-blur-xl flex flex-col items-center justify-between text-center min-h-[310px]">
+                <div class="w-full text-left self-start">
+                  <h4 class="text-sm font-bold tracking-widest text-slate-300 uppercase flex items-center gap-1.5">
+                    <i data-lucide="percent" class="h-4 w-4 text-emerald-400 animate-pulse"></i>
+                    Grand Completion Matrix
+                  </h4>
+                  <p class="text-xs text-slate-400 mt-0.5">Overall completed trials of all subjects.</p>
+                </div>
+
+                <!-- Circular svg graph segment -->
+                <div class="relative flex items-center justify-center my-6">
+                  <svg class="h-32 w-32 -rotate-90">
+                    <circle cx="64" cy="64" r="50" class="stroke-slate-950 fill-none" stroke-width="8"></circle>
+                    <circle
+                      id="analytics-circular-bar"
+                      cx="64" cy="64" r="50"
+                      class="fill-none transition-all duration-1000 stroke-emerald-500"
+                      stroke-width="9"
+                      stroke-dasharray="314.16"
+                      stroke-dashoffset="314.16"
+                      stroke-linecap="round"
+                      style="filter: drop-shadow(0 0 10px rgba(16,185,129,0.3)); stroke: #10b981;"
+                    ></circle>
+                  </svg>
+                  <div class="absolute flex flex-col items-center">
+                    <span id="analytics-circular-percent" class="text-3xl font-extrabold text-white font-mono leading-none">0%</span>
+                    <span class="text-[10px] text-slate-450 font-mono tracking-wider mt-1.5 uppercase">COFFERS FILL</span>
+                  </div>
+                </div>
+
+                <div class="w-full bg-slate-950/40 border border-slate-800/60 rounded-xl p-3 flex justify-around text-center">
+                  <div>
+                    <span class="text-slate-500 text-[10px] uppercase font-mono block">Finished Targets</span>
+                    <span id="analytics-total-completed" class="text-lg font-bold text-emerald-400 font-mono">0</span>
+                  </div>
+                  <div class="border-r border-slate-800"></div>
+                  <div>
+                    <span class="text-slate-500 text-[10px] uppercase font-mono block">Active Quests</span>
+                    <span id="analytics-total-active" class="text-lg font-bold text-slate-300 font-mono">0</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Pure SVG/CSS Web log study hour chart layout -->
+              <div class="rounded-2xl border border-slate-700/40 bg-slate-900/60 p-5 backdrop-blur-xl flex flex-col justify-between min-h-[310px]">
+                <div>
+                  <h4 class="text-sm font-bold tracking-widest text-slate-300 uppercase flex items-center gap-1.5 font-sans">
+                    <i data-lucide="bar-chart" class="h-4 w-4 text-amber-400 animate-pulse"></i>
+                    Weekly Trail Log 📜
+                  </h4>
+                  <p class="text-xs text-slate-400 mt-0.5">Focus hours spent per sunset. Hover for logs.</p>
+                </div>
+
+                <!-- Dynamic chart columns wrapper -->
+                <div id="analytics-bar-chart" class="relative mt-5 mb-2 h-44 w-full flex items-end justify-between px-2">
+                  <!-- Gridlines -->
+                  <div class="absolute inset-x-0 top-0 bottom-6 border-b border-dashed border-slate-800/40 flex flex-col justify-between pointer-events-none">
+                    <div class="h-0 border-t border-dashed border-slate-800/40 w-full"></div>
+                    <div class="h-0 border-t border-dashed border-slate-800/40 w-full"></div>
+                    <div class="h-0 border-t border-dashed border-slate-800/40 w-full"></div>
+                  </div>
+                  <!-- Dynamic columns inject here -->
+                </div>
+
+                <div class="text-[10px] text-slate-500 flex justify-between font-mono bg-slate-950/30 rounded p-2 mt-2">
+                  <span id="analytics-peak-hours">Weekly Peak: 0.0 Hrs</span>
+                  <span>Target Goal: 4.5 Hrs / sunset</span>
+                </div>
+              </div>
+
+              <!-- 3. Subject-wise percentage layout -->
+              <div class="rounded-2xl border border-slate-700/40 bg-slate-900/60 p-5 backdrop-blur-xl flex flex-col min-h-[310px]">
+                <div>
+                  <h4 class="text-sm font-bold tracking-widest text-slate-300 uppercase flex items-center gap-1.5">
+                    <i data-lucide="calendar" class="h-4 w-4 text-purple-400"></i>
+                    Subject Guild Mastery
+                  </h4>
+                  <p class="text-xs text-slate-400 mt-0.5">Progression index for each primary CGL academy trial.</p>
+                </div>
+
+                <!-- List of bars for subjects -->
+                <div id="analytics-subject-bars" class="mt-4 flex flex-col gap-3 flex-1 overflow-y-auto max-h-[220px] pr-1">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+            </div>
+
+          </section>
+
+
+          <!-- TAB CONTENT: 🎖️ OFFICER RANK PATH -->
+          <section id="tab-section-rankpath" class="tab-content hidden flex flex-col gap-6">
+            
+            <div class="flex flex-col gap-1">
+              <h2 class="text-2xl font-black text-white flex items-center gap-2 tracking-tight">
+                <i data-lucide="award" class="text-amber-400 pb-0.5"></i> Officer Rank Ladder Path
+              </h2>
+              <p class="text-xs text-slate-400">Your status increases through the Cadet, Scholar and Elite ranks when you fulfill BOTH required chronological enlistment months and lifetime study XP milestones.</p>
+            </div>
+
+            <!-- RPG STATS & ENHANCED DUAL-REQUIREMENT OFFICER PROMOTION CARD -->
+            <div class="relative overflow-hidden rounded-2xl border border-slate-700/40 bg-slate-900/65 p-6 backdrop-blur-xl shadow-lg flex flex-col gap-6">
+              <!-- Magic Ambient Orbs -->
+              <div class="absolute top-0 right-0 -mr-16 -mt-16 h-36 w-36 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
+              <div class="absolute bottom-0 left-0 -ml-16 -mb-16 h-36 w-36 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"></div>
+
+              <!-- Top Panel: Current Rank Status -->
+              <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5 pb-5 border-b border-slate-800">
+                <div class="flex items-start gap-4">
+                  <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-400 via-amber-500 to-pink-500 p-0.5 shadow-md shadow-slate-950/45">
+                    <div class="flex h-full w-full items-center justify-center rounded-[10px] bg-slate-950/90 backdrop-blur-sm">
+                      <span id="officer-huge-badge" class="text-3xl">🛡️</span>
+                    </div>
+                  </div>
+                  <div class="text-left font-sans">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-xs font-semibold tracking-wider text-amber-400 uppercase">Current Officer Title</span>
+                      <span id="officer-pay-grade" class="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-300 border border-amber-500/20 font-mono">
+                        RANK STATUS CODE: 1
+                      </span>
+                    </div>
+                    <h3 id="officer-full-title" class="text-xl font-black tracking-tight text-white mt-1">
+                      Recruit
+                    </h3>
+                    <p id="officer-full-desc" class="text-xs text-slate-400 mt-1 italic max-w-md leading-relaxed">
+                      "A fresh recruit starting the long study training layout under candlelight."
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex gap-3">
+                  <!-- Time completed card -->
+                  <div class="flex flex-col items-end shrink-0 bg-slate-950/40 rounded-xl p-3 border border-slate-800/80 min-w-[125px]">
+                    <span class="text-[9px] uppercase tracking-widest text-slate-500 font-mono font-bold">Months Enlisted</span>
+                    <span id="rpg-months-completed" class="text-lg font-extrabold text-amber-300 font-mono mt-0.5">0.0 Months</span>
+                    <span class="text-[9px] text-slate-500 font-mono">Duration Logged</span>
+                  </div>
+                  <!-- Cumulative XP card -->
+                  <div class="flex flex-col items-end shrink-0 bg-slate-950/40 rounded-xl p-3 border border-slate-800/80 min-w-[125px]">
+                    <span class="text-[9px] uppercase tracking-widest text-slate-500 font-mono font-bold">Total XP Earned</span>
+                    <span id="rpg-cumulative-xp" class="text-lg font-extrabold text-indigo-300 font-mono mt-0.5">0 XP</span>
+                    <span class="text-[9px] text-slate-500 font-mono">Sovereign Effort</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Simulating controls -->
+              <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                <div class="flex items-center gap-3">
+                  <i data-lucide="calendar" class="text-indigo-400 h-5 w-5 animate-pulse"></i>
+                  <div class="text-left font-sans">
+                    <p class="text-[9px] text-slate-500 uppercase font-mono font-bold">Odyssey Commission Start Date</p>
+                    <span id="rank-path-start-date-text" class="text-xs font-bold text-amber-100">June 10, 2026</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-start">
+                  <span class="text-[10px] text-slate-400 font-mono uppercase">Simulate start date:</span>
+                  <input type="date" id="journey-start-date-input" onchange="updateJourneyStartDate(event)" class="text-xs font-semibold text-slate-100 bg-slate-900 border border-slate-800 py-1.5 px-2.5 rounded focus:border-amber-400 focus:outline-none cursor-pointer" />
+                </div>
+              </div>
+
+              <!-- DUAL REQUIREMENTS SUB-PANEL -->
+              <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <!-- Box A: Time Requirement -->
+                <div class="rounded-xl bg-slate-950/30 border border-slate-800/80 p-4 text-left flex flex-col justify-between min-h-[110px] font-sans">
+                  <div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-[10px] tracking-wider uppercase font-mono font-black text-amber-500">1. Time Completed Status</span>
+                      <span id="indicator-time-badge" class="rounded px-2.5 py-0.5 text-[9px] font-mono leading-none tracking-wide text-slate-500 font-bold bg-slate-900 border border-slate-850">
+                        In Progress
+                      </span>
+                    </div>
+                    <!-- Big descriptive text -->
+                    <h4 class="text-lg font-bold text-slate-200 mt-2 flex items-center gap-2">
+                      <span id="indicator-time-check" class="text-slate-650">✗</span>
+                      <span id="indicator-time-numbers">0.0 / 3.0 Months</span>
+                    </h4>
+                  </div>
+                  <p class="text-[11px] text-slate-400 italic mt-2">Required duration since enlistment ceremony.</p>
+                </div>
+
+                <!-- Box B: XP Requirement -->
+                <div class="rounded-xl bg-slate-950/30 border border-slate-800/80 p-4 text-left flex flex-col justify-between min-h-[110px] font-sans">
+                  <div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-[10px] tracking-wider uppercase font-mono font-black text-indigo-400">2. XP Earned Status</span>
+                      <span id="indicator-xp-badge" class="rounded px-2.5 py-0.5 text-[9px] font-mono leading-none tracking-wide text-slate-500 font-bold bg-slate-900 border border-slate-850">
+                        In Progress
+                      </span>
+                    </div>
+                    <!-- Big descriptive text -->
+                    <h4 class="text-lg font-bold text-slate-200 mt-2 flex items-center gap-2">
+                      <span id="indicator-xp-check" class="text-slate-650">✗</span>
+                      <span id="indicator-xp-numbers">0 / 1,000 XP</span>
+                    </h4>
+                  </div>
+                  <p class="text-[11px] text-slate-400 italic mt-2">Cumulative effort gathered from completed quests and Pomodoro sessions.</p>
+                </div>
+
+              </div>
+
+              <!-- Promotion Progress Bar -->
+              <div class="relative z-10">
+                <div class="flex items-center justify-between text-xs font-mono text-slate-300 mb-2">
+                  <span class="flex items-center gap-1.5 font-sans font-semibold">
+                    <i data-lucide="sparkles" class="h-4 w-4 text-amber-400 animate-spin" style="animation-duration: 12s;"></i>
+                    Unified Progression Index
+                  </span>
+                  <span id="rank-promotion-percent-tag" class="text-amber-300 font-bold">0%</span>
+                </div>
+                <div class="h-3.5 w-full rounded-full bg-slate-950/70 p-0.5 border border-slate-800">
+                  <div id="rank-promotion-bar" class="h-full rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-indigo-600 relative transition-all duration-500" style="width: 0%;">
+                    <div class="absolute right-0 top-0 h-full w-2 bg-white rounded-full blur-[1px] animate-pulse"></div>
+                  </div>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 mt-1.5 font-mono">
+                  <span id="rank-prom-from">Current: Recruit</span>
+                  <span id="rank-prom-to">Next rank: Cadet</span>
+                </div>
+              </div>
+
+              <!-- PROMOTION AVAILABLE / IN PROGRESS DYNAMIC NOTIFIER WIDGET -->
+              <div id="promotion-action-card-holder" class="relative z-10 rounded-xl border border-slate-800 bg-slate-950/50 p-4 transition-all duration-300">
+                <!-- Dynamically populated in triggerInterfaceUpdates() -->
+              </div>
+
+
+            <!-- TIMELINE TIMEFRAME ROAD -->
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 mt-2">
+              <h4 class="text-xs uppercase font-mono text-slate-300 font-bold pb-3 border-b border-slate-800/80 flex items-center gap-1.5">
+                <i data-lucide="network" class="h-4 w-4 text-amber-400 animate-pulse"></i> RPG Career progression Timeline Road
+              </h4>
+              
+              <!-- ROAD DYNAMIC GRAPHICS -->
+              <div class="relative mt-8 pl-8 sm:pl-12 border-l-2 border-dashed border-slate-800 space-y-8 pb-4" id="rpg-timeline-wrapper">
+                <!-- Timelines will be injected here with unlocked glows or grey locked overlays -->
+              </div>
+            </div>
+
+          </section>
+
+
+          <!-- --- SETTINGS SECTION --- -->
+          <section id="tab-section-settings" class="tab-content hidden flex flex-col gap-6">
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 md:p-8 backdrop-blur-xl relative overflow-hidden flex flex-col gap-8">
+              <!-- Grid background accent -->
+              <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-10 pointer-events-none"></div>
+
+              <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/60 pb-5">
+                <div>
+                  <span class="text-[10px] font-mono uppercase tracking-widest text-rose-450 font-bold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">System Command Panel</span>
+                  <h3 class="text-xl font-bold tracking-tight text-white mt-1.5 font-sans">Settings Chamber</h3>
+                  <p class="text-xs text-slate-400 font-sans mt-1">Configure your administrative interface presets and progression data.</p>
+                </div>
+                <div class="h-10 w-10 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-400">
+                  <i data-lucide="settings" class="h-5 w-5 animate-spin" style="animation-duration: 20s;"></i>
+                </div>
+              </div>
+
+              <!-- General Settings placeholders to make it look beautiful and fully polished -->
+              <div class="relative z-10 flex flex-col gap-4 font-sans max-w-2xl mx-auto w-full">
+                <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/35 flex sm:items-center justify-between gap-4 font-sans">
+                  <div>
+                    <h4 class="text-xs font-bold text-slate-200">Enlistment Identity Name</h4>
+                    <p class="text-[11px] text-slate-500 mt-1">Change visual title greeting on upper headers.</p>
+                  </div>
+                  <div class="flex gap-2">
+                    <input 
+                      type="text" 
+                      id="input-settings-username" 
+                      placeholder="Aspirant Officer" 
+                      class="bg-slate-950 border border-slate-850 focus:border-indigo-400 rounded p-1.5 px-3 text-xs text-slate-250 focus:outline-none w-36 sm:w-48 text-center font-bold"
+                    />
+                    <button onclick="saveSettingsUsername()" class="px-3 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer">
+                      Save
+                    </button>
+                  </div>
+                </div>
+
+                <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/35 flex sm:items-center justify-between gap-4 font-sans">
+                  <div>
+                    <h4 class="text-xs font-bold text-slate-200">Audio Celebration Feedback</h4>
+                    <p class="text-[11px] text-slate-500 mt-1">Status of synthesizer audio chords playing on success.</p>
+                  </div>
+                  <div>
+                    <select id="select-settings-audio" onchange="toggleAudioSetting(this.value)" class="bg-slate-950 border border-slate-850 text-xs text-slate-300 rounded p-1.5 px-3 focus:outline-none focus:border-indigo-400 font-medium">
+                      <option value="enabled" selected>🔊 Enabled Chords</option>
+                      <option value="disabled">🔇 Silent Mode</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Danger Zone Separation with extra generous padding in responsive layout -->
+              <div class="relative z-10 mt-12 mb-8 p-6 md:p-8 rounded-xl border-2 border-dashed border-rose-500/30 bg-rose-950/5 flex flex-col items-center text-center gap-6 justify-center max-w-2xl mx-auto w-full">
+                <div class="flex flex-col items-center">
+                  <div class="h-10 w-10 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20 mb-3 animate-pulse">
+                    <i data-lucide="shield-alert" class="h-5 w-5"></i>
+                  </div>
+                  <h4 class="text-sm font-black text-rose-400 uppercase tracking-widest font-sans">Danger Zone: Irreversible Oblivion</h4>
+                  <p class="text-[11px] text-slate-400 leading-relaxed font-sans max-w-md mt-2">
+                    Resetting deletes all accumulated local storage records, RPG grade badges, consecutive streak counters, mock reports, and achievements permanently. This action is irreversible.
+                  </p>
+                </div>
+                
+                <!-- Added extra margin for un-clickability by accident -->
+                <div class="pt-4 pb-2 w-full flex justify-center">
+                  <button id="reset-progress-trigger-btn" onclick="openResetProgressModal()" class="w-full sm:w-auto px-8 py-4 rounded-xl border-2 border-rose-500/50 bg-rose-950/30 text-rose-400 font-extrabold text-xs uppercase tracking-widest hover:bg-rose-600 hover:text-white hover:border-rose-500 hover:shadow-[0_0_25px_rgba(239,68,68,0.25)] transition-all cursor-pointer duration-300 active:scale-95 flex items-center justify-center gap-2">
+                    🗑️ Reset All Progress
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </main>
+
+        <!-- INFORMATION BANNER FOOTER -->
+        <footer class="mt-2 flex items-center justify-center gap-2.5 p-3 rounded-xl bg-slate-950/45 border border-slate-800/60 max-w-lg mx-auto text-center relative z-10 text-[10px] text-slate-500">
+          <i data-lucide="info" class="h-3.5 w-3.5 text-indigo-400"></i>
+          <span>This tracker persists your XP progress, checkpoints, checklists, and mock records recursively in browser memory.</span>
+        </footer>
+      </div>
+
+    </div>
+
+    <!-- Vanilla Javascript core application script module -->
+    <script type="module" src="/src/main.js"></script>
+
+  </body>
+</html>
