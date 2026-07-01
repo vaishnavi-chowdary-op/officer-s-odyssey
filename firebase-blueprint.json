@@ -1,0 +1,16 @@
+{
+  "collections": [
+    {
+      "name": "users",
+      "fields": [
+        { "name": "uid", "type": "string", "attributes": ["primary_key"] },
+        { "name": "email", "type": "string" },
+        { "name": "state", "type": "map" },
+        { "name": "updatedAt", "type": "timestamp" }
+      ],
+      "rules": [
+        { "allow": "read, write", "if": "request.auth != null && request.auth.uid == uid" }
+      ]
+    }
+  ]
+}

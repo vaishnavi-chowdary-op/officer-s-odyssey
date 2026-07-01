@@ -1,5 +1,15 @@
 // SSC CGL FANTASY STUDY tracker ENGINE
 // Pure HTML, CSS & Vanilla JavaScript with Zero Framework overhead
+import { 
+  registerCloudUser, 
+  loginCloudUser, 
+  loginWithGoogle,
+  logoutCloudUser, 
+  onCloudAuthStateChanged, 
+  saveUserStateToCloud, 
+  loadUserStateFromCloud 
+} from "./firebase.js";
+import { syllabusData } from "./syllabusData.js";
 
 // --- PREMIUM MEME & MOTIVATIONAL SSC STUDY QUOTE PRESETS ---
 const MOTIVATIONAL_QUOTES = [
@@ -103,6 +113,7 @@ let state = {
   startDate: "",
   todaysFocus: "",
   sessions: [],
+  savedNotes: [],
   currentTab: "dashboard",
   tokensConsumed: 0, // Missed day recovery tokens consumed counter
   audioCelebration: "enabled",
@@ -255,15 +266,39 @@ function loadStateFromStorage() {
 
   // Set default empty arrays
   if (!state.mockTests) state.mockTests = [];
+  if (!state.savedNotes) state.savedNotes = [];
   if (state.tokensConsumed === undefined) state.tokensConsumed = 0;
+
+  // Initialize default Study Tracker progress if it doesn't exist
+  if (!state.studyTracker) {
+    state.studyTracker = {};
+  }
+  syllabusData.forEach(sub => {
+    if (!state.studyTracker[sub.subject]) {
+      state.studyTracker[sub.subject] = {};
+    }
+    sub.topics.forEach(topic => {
+      if (state.studyTracker[sub.subject][topic] === undefined) {
+        state.studyTracker[sub.subject][topic] = false;
+      }
+    });
+  });
 
   // Process streak calculation safely on load
   testAndApplyRestDayTaken();
 }
 
+// Current authenticated user registry reference
+let currentCloudUserId = null;
+
 function saveStateToStorage() {
   localStorage.setItem("ssc_tracker_state_v3", JSON.stringify(state));
   triggerInterfaceUpdates();
+  
+  // Automate saving to Firebase Firestore securely in the background
+  if (currentCloudUserId) {
+    saveUserStateToCloud(currentCloudUserId, state);
+  }
 }
 
 // --- TAB TRANSITION ENGINE ---
@@ -276,8 +311,10 @@ window.switchTab = function(tabId) {
   sections.forEach(sec => {
     if (sec.id === `tab-section-${tabId}`) {
       sec.classList.remove("hidden");
+      sec.classList.add("magical-entrance");
     } else {
       sec.classList.add("hidden");
+      sec.classList.remove("magical-entrance");
     }
   });
 
@@ -655,6 +692,113 @@ window.closeLevelUpModal = function() {
   if (modal) modal.classList.add("hidden");
 };
 
+function escapeHtml(str) {
+  if (!str) return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function renderSavedNotes() {
+  const container = document.getElementById("saved-notes-list");
+  if (!container) return;
+
+  if (!state.savedNotes || state.savedNotes.length === 0) {
+    container.innerHTML = `
+      <div class="flex flex-col items-center justify-center p-8 text-center text-slate-500 italic text-[11px] h-full min-h-[250px] leading-relaxed">
+        "All quiet in the archive library. Pensively enter notes on the left and tap 'Enter Note' to store your spells."
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = state.savedNotes.map((note, idx) => `
+    <div class="rounded-xl border border-slate-805 bg-slate-950/40 hover:border-slate-700/80 transition-all duration-250 flex flex-col gap-2 p-3.5 text-left mb-1.5 last:mb-0">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0 flex-1">
+          <h5 class="text-xs font-black text-amber-200 truncate pr-2 flex items-center gap-1.5">
+            <i data-lucide="file-text" class="h-3.5 w-3.5 text-amber-500 shrink-0"></i>
+            ${escapeHtml(note.title || "Untitled Spell")}
+          </h5>
+          <span class="text-[9px] font-mono text-slate-500 block mt-1 tracking-wider uppercase font-bold">
+            📜 Saved ${note.dateStr || "Recently"}
+          </span>
+        </div>
+        <button 
+          onclick="deleteSavedNote(${idx})"
+          class="text-slate-600 hover:text-red-400 p-1 rounded-md hover:bg-slate-900 transition-colors cursor-pointer"
+          title="Delete Saved Note"
+        >
+          <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+        </button>
+      </div>
+      <div class="text-[11px] text-slate-350 leading-relaxed font-sans whitespace-pre-wrap mt-1 max-h-[140px] overflow-y-auto bg-slate-950/30 p-2.5 rounded-lg border border-slate-900/60 font-medium">
+        ${escapeHtml(note.content || "")}
+      </div>
+    </div>
+  `).join("");
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+window.saveCurrentNoteToList = function() {
+  const titleInput = document.getElementById("notes-title-input");
+  const textarea = document.getElementById("notes-textarea");
+  if (!textarea) return;
+
+  const title = titleInput ? titleInput.value.trim() : "";
+  const content = textarea.value.trim();
+
+  if (!content) {
+    alert("⚠️ Please enter some content for your grimoire spell note before launching it to the archives.");
+    return;
+  }
+
+  const finalTitle = title || "Untitled Grimoire Note";
+  const now = new Date();
+  const dateStr = now.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) + " " + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (!state.savedNotes) {
+    state.savedNotes = [];
+  }
+
+  // Prepend note to listing (newest first)
+  state.savedNotes.unshift({
+    title: finalTitle,
+    content: content,
+    dateStr: dateStr,
+    timestamp: now.getTime()
+  });
+
+  // Reset inputs
+  if (titleInput) titleInput.value = "";
+  textarea.value = "";
+  state.note = "";
+
+  saveStateToStorage();
+  triggerInterfaceUpdates(false);
+  
+  // Play achievement success sound chord if possible
+  if (typeof playGoldenSuccessChord === "function") {
+    try {
+      playGoldenSuccessChord();
+    } catch(err) {}
+  }
+};
+
+window.deleteSavedNote = function(index) {
+  if (confirm("Are you sure you want to delete this archived spell note?")) {
+    if (state.savedNotes && state.savedNotes[index]) {
+      state.savedNotes.splice(index, 1);
+      saveStateToStorage();
+      triggerInterfaceUpdates(false);
+    }
+  }
+};
+
 // --- RUNIC NOTES LOG WORKSPACE ---
 window.handleNoteTyping = function(event) {
   const textarea = event.target;
@@ -865,7 +1009,19 @@ function renderMockTestsList() {
   if (!container) return;
 
   const mockTests = state.mockTests || [];
+  
+  // Update stats cards in real-time
+  const statTotal = document.getElementById("mock-stat-total");
+  const statPeak = document.getElementById("mock-stat-peak");
+  const statAvg = document.getElementById("mock-stat-avg");
+  const statLatest = document.getElementById("mock-stat-latest");
+
   if (mockTests.length === 0) {
+    if (statTotal) statTotal.innerText = "0";
+    if (statPeak) statPeak.innerText = "0.0";
+    if (statAvg) statAvg.innerText = "0.0";
+    if (statLatest) statLatest.innerText = "0.0";
+
     container.innerHTML = `
       <div class="flex flex-col items-center justify-center p-8 text-center text-slate-500 italic text-xs">
         "No mock tests recorded yet. Complete a challenge to begin your record."
@@ -873,6 +1029,17 @@ function renderMockTestsList() {
     `;
     return;
   }
+
+  const scores = mockTests.map(t => t.score);
+  const total = mockTests.length;
+  const peak = Math.max(...scores).toFixed(1);
+  const avg = (scores.reduce((sum, s) => sum + s, 0) / total).toFixed(1);
+  const latest = mockTests[0].score.toFixed(1);
+
+  if (statTotal) statTotal.innerText = total;
+  if (statPeak) statPeak.innerText = peak;
+  if (statAvg) statAvg.innerText = avg;
+  if (statLatest) statLatest.innerText = latest;
 
   container.innerHTML = mockTests.map(item => `
     <div class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 hover:border-slate-700 hover:bg-slate-900/10 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1474,6 +1641,11 @@ function triggerInterfaceUpdates(shouldRepopulateTaskValues = true) {
     noteArea.value = state.note || "";
   }
 
+  // Render Saved Grimoire Notes list
+  if (typeof renderSavedNotes === "function") {
+    renderSavedNotes();
+  }
+
   // --- RENDERING INTEGRATED DASHBOARD SUMMARY CARDS ---
   const dashStreakCardVal = document.getElementById("dash-streak-card-val");
   if (dashStreakCardVal) dashStreakCardVal.innerText = `${state.streak} Sunset Day${state.streak !== 1 ? 's' : ''} 🔥`;
@@ -1717,6 +1889,10 @@ function triggerInterfaceUpdates(shouldRepopulateTaskValues = true) {
   // Draw timeline road
   renderRankTimelineRoad(elapsedMonths);
 
+  // Sync mock test visual traces and scoring registries
+  drawMockTestChart();
+  renderMockTestsList();
+
   if (window.lucide) {
     window.lucide.createIcons();
   }
@@ -1732,6 +1908,9 @@ function triggerInterfaceUpdates(shouldRepopulateTaskValues = true) {
   if (audioSelect) {
     audioSelect.value = state.audioCelebration || "enabled";
   }
+
+  // Sync Study Tracker values in real-time
+  updateStudyTrackerProgressUI();
 }
 
 // --- COSMIC AMBIENT FLOATING EMBERS (CANVAS LOOP) ---
@@ -1812,9 +1991,214 @@ function updateRealTimeClock() {
   }
 }
 
+// --- STUDY TRACKER RENDER AND LOGIC INTERFACE ---
+function initStudyTrackerUI() {
+  const container = document.getElementById("study-subjects-list");
+  if (!container) return;
+  
+  let html = "";
+  syllabusData.forEach(sub => {
+    let topicsHtml = "";
+    sub.topics.forEach(topic => {
+      const safeId = `${sub.id}-${topic.replace(/[^a-zA-Z0-9]/g, "-")}`;
+      topicsHtml += `
+        <!-- Topic checklist item -->
+        <label for="chk-${safeId}" class="flex items-center justify-between p-3.5 rounded-xl border border-slate-900 bg-slate-950/60 hover:bg-slate-950 hover:border-${sub.color}-500/20 hover:shadow-[0_0_12px_rgba(255,255,255,0.01)] transition-all duration-200 cursor-pointer select-none group active:scale-[0.98]">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="relative flex items-center justify-center shrink-0">
+              <input 
+                type="checkbox" 
+                id="chk-${safeId}" 
+                onclick="event.stopPropagation(); toggleSyllabusTopic('${sub.subject.replace(/'/g, "\\'")}', '${topic.replace(/'/g, "\\'")}', 'chk-${safeId}')"
+                class="peer h-4.5 w-4.5 rounded border border-slate-800 bg-slate-950 text-${sub.color}-500 focus:ring-0 focus:ring-offset-0 transition-all checked:border-${sub.color}-500 checked:bg-${sub.color}-500/10 cursor-pointer shrink-0" 
+              />
+              <i data-lucide="check" class="absolute h-3.5 w-3.5 text-${sub.color}-400 pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity scale-90 peer-checked:scale-100 duration-200"></i>
+            </div>
+            <span id="lbl-${safeId}" class="text-xs font-semibold text-slate-300 transition-all truncate">${topic}</span>
+          </div>
+          <span id="badge-${safeId}" class="text-[8px] font-mono px-1.5 py-0.5 rounded border border-slate-800 bg-slate-900 text-slate-500 leading-none shrink-0 transition-all">NOT STARTED</span>
+        </label>
+      `;
+    });
+    
+    html += `
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/30 backdrop-blur-xl overflow-hidden transition-all duration-300 hover:border-slate-850 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)] font-sans" id="subject-card-${sub.id}">
+        <!-- Subject Header -->
+        <div onclick="toggleSubjectCard('${sub.id}')" class="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none transition-colors hover:bg-slate-900/40" id="subject-header-${sub.id}">
+          <div class="flex items-center gap-4 flex-1 min-w-0">
+            <div class="h-11 w-11 rounded-xl bg-${sub.color}-500/10 border border-${sub.color}-500/20 flex items-center justify-center text-${sub.color}-400 shrink-0 shadow-inner">
+              <i data-lucide="${sub.icon}" class="h-5.5 w-5.5"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-baseline gap-2 flex-wrap">
+                <h3 class="text-xs sm:text-sm font-black tracking-wide text-white uppercase font-sans">${sub.subject}</h3>
+                <span class="text-[9px] font-mono text-${sub.color}-400 uppercase tracking-widest font-bold">${sub.description}</span>
+              </div>
+              
+              <!-- Mini Progress Info -->
+              <div class="flex items-center gap-3 mt-2 flex-wrap">
+                <div class="w-24 sm:w-36 bg-slate-950 h-1.5 rounded-full p-0.5 border border-slate-850 overflow-hidden shrink-0">
+                  <div id="subject-progress-bar-val-${sub.id}" class="h-full rounded-full bg-${sub.color}-500 transition-all duration-500 ease-out shadow-[0_0_8px_rgba(255,255,255,0.05)]" style="width: 0%;"></div>
+                </div>
+                <span class="text-[10px] font-mono font-medium text-slate-400">
+                  <span id="subject-percent-val-${sub.id}" class="font-bold text-white font-mono">0%</span>
+                  (<span id="subject-completed-val-${sub.id}" class="font-mono text-emerald-400">0</span>/<span id="subject-total-val-${sub.id}" class="font-mono">0</span> completed)
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Expand/Collapse arrow icon -->
+          <div class="h-8 w-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-500 transition-transform duration-300 shrink-0" id="subject-chevron-${sub.id}">
+            <i data-lucide="chevron-down" class="h-4 w-4"></i>
+          </div>
+        </div>
+
+        <!-- Subject Expandable Checklist Grid -->
+        <div id="subject-content-${sub.id}" class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-350 ease-out overflow-hidden">
+          <div class="min-h-0">
+            <div class="p-4 sm:p-5 bg-slate-950/20 border-t border-slate-900/60 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              ${topicsHtml}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+  
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+}
+
+function updateStudyTrackerProgressUI() {
+  if (!state.studyTracker) return;
+  
+  let totalAll = 0;
+  let completedAll = 0;
+  
+  syllabusData.forEach(sub => {
+    let totalSub = sub.topics.length;
+    let completedSub = 0;
+    
+    sub.topics.forEach(topic => {
+      const checked = !!(state.studyTracker[sub.subject] && state.studyTracker[sub.subject][topic]);
+      if (checked) {
+        completedSub++;
+      }
+      
+      const safeId = `${sub.id}-${topic.replace(/[^a-zA-Z0-9]/g, "-")}`;
+      const chk = document.getElementById(`chk-${safeId}`);
+      if (chk) {
+        chk.checked = checked;
+      }
+      
+      const label = document.getElementById(`lbl-${safeId}`);
+      const badge = document.getElementById(`badge-${safeId}`);
+      if (label) {
+        if (checked) {
+          label.className = "text-xs font-semibold text-slate-450 line-through decoration-emerald-500/50 select-none transition-all";
+        } else {
+          label.className = "text-xs font-semibold text-slate-200 select-none transition-all";
+        }
+      }
+      if (badge) {
+        if (checked) {
+          badge.innerText = "COMPLETED";
+          badge.className = `text-[8px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 font-bold leading-none shrink-0 transition-all shadow-[0_0_6px_rgba(16,185,129,0.15)]`;
+        } else {
+          badge.innerText = "NOT STARTED";
+          badge.className = `text-[8px] font-mono px-1.5 py-0.5 rounded border border-slate-800 bg-slate-900 text-slate-500 leading-none shrink-0 transition-all`;
+        }
+      }
+    });
+    
+    totalAll += totalSub;
+    completedAll += completedSub;
+    
+    const percentSub = totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : 0;
+    
+    const subBar = document.getElementById(`subject-progress-bar-val-${sub.id}`);
+    const subPercent = document.getElementById(`subject-percent-val-${sub.id}`);
+    const subCompleted = document.getElementById(`subject-completed-val-${sub.id}`);
+    const subTotal = document.getElementById(`subject-total-val-${sub.id}`);
+    
+    if (subBar) subBar.style.width = `${percentSub}%`;
+    if (subPercent) subPercent.innerText = `${percentSub}%`;
+    if (subCompleted) subCompleted.innerText = completedSub;
+    if (subTotal) subTotal.innerText = totalSub;
+  });
+  
+  const remainingAll = totalAll - completedAll;
+  const percentAll = totalAll > 0 ? Math.round((completedAll / totalAll) * 100) : 0;
+  
+  const overallPercent = document.getElementById("study-overall-percent");
+  const overallCompleted = document.getElementById("study-overall-completed");
+  const overallRemaining = document.getElementById("study-overall-remaining");
+  const overallBar = document.getElementById("study-overall-progress-bar");
+  
+  if (overallPercent) overallPercent.innerText = `${percentAll}%`;
+  if (overallCompleted) overallCompleted.innerText = `${completedAll} / ${totalAll}`;
+  if (overallRemaining) overallRemaining.innerText = remainingAll;
+  if (overallBar) overallBar.style.width = `${percentAll}%`;
+}
+
+window.toggleSubjectCard = function(subjectId) {
+  const content = document.getElementById(`subject-content-${subjectId}`);
+  const chevron = document.getElementById(`subject-chevron-${subjectId}`);
+  const card = document.getElementById(`subject-card-${subjectId}`);
+  const header = document.getElementById(`subject-header-${subjectId}`);
+  
+  if (!content || !chevron) return;
+  
+  const isExpanded = content.classList.contains("grid-rows-[1fr]");
+  
+  if (isExpanded) {
+    content.classList.remove("grid-rows-[1fr]");
+    content.classList.add("grid-rows-[0fr]");
+    chevron.classList.remove("rotate-180");
+    card.classList.remove("border-slate-755/80", "shadow-[0_0_25px_rgba(255,255,255,0.03)]");
+    card.classList.add("border-slate-800");
+    header.classList.remove("bg-slate-900/40");
+  } else {
+    content.classList.remove("grid-rows-[0fr]");
+    content.classList.add("grid-rows-[1fr]");
+    chevron.classList.add("rotate-180");
+    card.classList.remove("border-slate-800");
+    card.classList.add("border-slate-700/80", "shadow-[0_0_25px_rgba(255,255,255,0.03)]");
+    header.classList.add("bg-slate-900/40");
+  }
+};
+
+window.toggleSyllabusTopic = function(subjectName, topicName, checkboxId) {
+  const chk = document.getElementById(checkboxId);
+  if (!chk) return;
+  
+  const isChecked = chk.checked;
+  
+  if (!state.studyTracker) state.studyTracker = {};
+  if (!state.studyTracker[subjectName]) state.studyTracker[subjectName] = {};
+  
+  state.studyTracker[subjectName][topicName] = isChecked;
+  
+  // Web audio feedback
+  playSingleMagicalTick();
+  
+  // Gamification rewards!
+  if (isChecked) {
+    addExperience(15);
+    spawnXpFloatPopup(15);
+  }
+  
+  saveStateToStorage();
+};
+
 // --- INITIALIZE APPLICATION TURN ON ---
 window.addEventListener("DOMContentLoaded", () => {
   loadStateFromStorage();
+  initStudyTrackerUI();
   
   // Navigate to saved active tab
   switchTab(state.currentTab || "dashboard");
@@ -1962,6 +2346,7 @@ window.executeAbsoluteReset = function() {
   state.pomodoroSessions = 0;
   state.lastActiveDate = new Date().toLocaleDateString();
   state.note = "";
+  state.savedNotes = [];
   state.startDate = new Date().toISOString(); // new start date
   state.todaysFocus = "";
   state.sessions = [];
@@ -1990,8 +2375,30 @@ window.executeAbsoluteReset = function() {
     { day: "Sat", hours: 0.0 }
   ];
 
+  // Incinerate Study Tracker checklists back to clean slate
+  state.studyTracker = {};
+  syllabusData.forEach(sub => {
+    state.studyTracker[sub.subject] = {};
+    sub.topics.forEach(topic => {
+      state.studyTracker[sub.subject][topic] = false;
+    });
+  });
+
+  // Manual cleaning of specific notes elements
+  const notesTitle = document.getElementById("notes-title-input");
+  if (notesTitle) notesTitle.value = "";
+  const notesArea = document.getElementById("notes-textarea");
+  if (notesArea) notesArea.value = "";
+  const resetInput = document.getElementById("reset-confirm-input");
+  if (resetInput) resetInput.value = "";
+
   // Persist fresh record state
   localStorage.setItem("ssc_tracker_state_v3", JSON.stringify(state));
+
+  // If connected to Cloud, synchronize the refreshed starting state immediately
+  if (currentCloudUserId) {
+    saveUserStateToCloud(currentCloudUserId, state);
+  }
 
   // Visual Clean up & redirect
   closeResetProgressModal();
@@ -2000,4 +2407,227 @@ window.executeAbsoluteReset = function() {
 
   // Success notifications
   alert("Your new journey begins.");
+};
+
+// --- CLOUD AUTHENTICATION & MULTI-USER DIRECT SYNCHRONIZATION ---
+
+onCloudAuthStateChanged(async (user) => {
+  const loggedInContainer = document.getElementById("cloud-logged-in-container");
+  const loggedOutContainer = document.getElementById("cloud-logged-out-container");
+  const userEmailSpan = document.getElementById("cloud-user-email");
+  const badge = document.getElementById("cloud-connection-badge");
+  const headerStatus = document.getElementById("header-cloud-sync-status");
+
+  if (user) {
+    currentCloudUserId = user.uid;
+    
+    // Toggle container views
+    if (loggedInContainer) loggedInContainer.classList.remove("hidden");
+    if (loggedOutContainer) loggedOutContainer.classList.add("hidden");
+    if (userEmailSpan) userEmailSpan.innerText = user.email;
+    
+    // Update Connection Badge (emerald cloud)
+    if (badge) {
+      badge.innerHTML = `<i data-lucide="cloud" class="h-5 w-5 text-emerald-400"></i>`;
+      badge.className = "h-10 w-10 shrink-0 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center";
+    }
+
+    // Update Header Status badge
+    if (headerStatus) {
+      headerStatus.innerHTML = `<i data-lucide="cloud" class="h-3 w-3"></i><span>CLOUD SECURED</span>`;
+      headerStatus.className = "flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-mono border border-emerald-500/20 bg-emerald-500/5 text-emerald-400";
+    }
+
+    // Attempt to download saved scrolls state from cloud
+    try {
+      const cloudState = await loadUserStateFromCloud(user.uid);
+      if (cloudState) {
+        // Overwrite local progress with downloaded archive database
+        state = { ...state, ...cloudState };
+        localStorage.setItem("ssc_tracker_state_v3", JSON.stringify(state));
+        // Completely refresh components
+        triggerInterfaceUpdates(true);
+      } else {
+        // Create initial backup if cloud is empty
+        await saveUserStateToCloud(user.uid, state);
+      }
+    } catch (err) {
+      console.error("Failed loading or initializing user state in the cloud:", err);
+    }
+  } else {
+    currentCloudUserId = null;
+
+    if (loggedInContainer) loggedInContainer.classList.add("hidden");
+    if (loggedOutContainer) loggedOutContainer.classList.remove("hidden");
+    
+    // Update Connection Badge (disabled grey)
+    if (badge) {
+      badge.innerHTML = `<i data-lucide="cloud-off" class="h-5 w-5 text-slate-500"></i>`;
+      badge.className = "h-10 w-10 shrink-0 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center";
+    }
+
+    // Update Header Status badge
+    if (headerStatus) {
+      headerStatus.innerHTML = `<i data-lucide="cloud-off" class="h-3 w-3"></i><span>LOCAL ONLY</span>`;
+      headerStatus.className = "flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-mono border border-slate-800 bg-slate-900/50 text-slate-500";
+    }
+  }
+
+  // Reload lucide icon mapping dynamically
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+});
+
+// Enlist authentication handlers internationally onto window object for HTML action attributes
+window.handleGoogleLogin = async function() {
+  const googleBtn = document.getElementById("google-login-btn");
+  const originalText = googleBtn ? googleBtn.innerHTML : "Sign In with Google";
+  
+  if (googleBtn) {
+    googleBtn.innerHTML = `
+      <svg class="animate-spin h-4 w-4 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <span>Enlisting Google auth...</span>
+    `;
+    googleBtn.disabled = true;
+  }
+
+  const { user, error } = await loginWithGoogle();
+
+  if (googleBtn) {
+    googleBtn.innerHTML = originalText;
+    googleBtn.disabled = false;
+  }
+
+  if (error) {
+    alert("❌ Google Enlistment Failed: " + error);
+  } else {
+    alert("🌌 Divine Cloud Archives synchronized via Google! Welcome, Officer.");
+  }
+};
+
+window.handleCloudLogin = async function() {
+  const emailInput = document.getElementById("cloud-auth-email");
+  const passwordInput = document.getElementById("cloud-auth-password");
+  
+  if (!emailInput || !passwordInput) return;
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!email || !password) {
+    alert("⚠️ Please enter a valid Email Address and Password to login!");
+    return;
+  }
+
+  const loginBtn = document.querySelector("button[onclick='handleCloudLogin()']");
+  const originalText = loginBtn ? loginBtn.innerText : "Sign In 🔑";
+  if (loginBtn) {
+    loginBtn.innerText = "Connecting...";
+    loginBtn.disabled = true;
+  }
+
+  const { user, error } = await loginCloudUser(email, password);
+  
+  if (loginBtn) {
+    loginBtn.innerText = originalText;
+    loginBtn.disabled = false;
+  }
+
+  if (error) {
+    alert("❌ Access Denied: " + error);
+  } else {
+    alert("🌌 Cloud archives successfully synchronized! Welcome back, Officer.");
+    emailInput.value = "";
+    passwordInput.value = "";
+  }
+};
+
+window.handleCloudRegister = async function() {
+  const emailInput = document.getElementById("cloud-auth-email");
+  const passwordInput = document.getElementById("cloud-auth-password");
+  
+  if (!emailInput || !passwordInput) return;
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!email || !password) {
+    alert("⚠️ Please enter a valid Email and Password to register!");
+    return;
+  }
+
+  if (password.length < 6) {
+    alert("⚠️ Pass-incantation must be at least 6 characters in length!");
+    return;
+  }
+
+  const registerBtn = document.querySelector("button[onclick='handleCloudRegister()']");
+  const originalText = registerBtn ? registerBtn.innerText : "Create Account 🛡️";
+  if (registerBtn) {
+    registerBtn.innerText = "Securing Scroll...";
+    registerBtn.disabled = true;
+  }
+
+  const { user, error } = await registerCloudUser(email, password);
+
+  if (registerBtn) {
+    registerBtn.innerText = originalText;
+    registerBtn.disabled = false;
+  }
+
+  if (error) {
+    alert("❌ Enlistment Failed: " + error);
+  } else {
+    alert("🛡️ Officer Cloud Profile registered! Your local study progress has been permanently synchronized to the cloud.");
+    emailInput.value = "";
+    passwordInput.value = "";
+  }
+};
+
+window.handleCloudLogout = async function() {
+  if (confirm("Sign out of your active Cloud Archive profile? (Your local cache copy remains safe on this browser!)")) {
+    const { success, error } = await logoutCloudUser();
+    if (success) {
+      alert("🔒 Signed out. Transitioning to Local Sanctuary Mode.");
+    } else {
+      alert("❌ Error: " + error);
+    }
+  }
+};
+
+window.triggerImmediateCloudBackup = async function() {
+  if (!currentCloudUserId) return;
+  try {
+    const success = await saveUserStateToCloud(currentCloudUserId, state);
+    if (success) {
+      alert("🚀 Divine Save Completed. Progress locked securely in the stars!");
+    } else {
+      alert("❌ Backup Spell interrupted. Check your network or try again.");
+    }
+  } catch (err) {
+    console.error("Manual backup failed:", err);
+    alert("❌ Backup Spell interrupted. Check your network or permissions.");
+  }
+};
+
+window.triggerImmediateCloudRestore = async function() {
+  if (!currentCloudUserId) return;
+  if (confirm("Overwrite your current local progress with the latest data saved in the Cloud Archive? This cannot be undone.")) {
+    try {
+      const cloudState = await loadUserStateFromCloud(currentCloudUserId);
+      if (cloudState) {
+        state = { ...state, ...cloudState };
+        localStorage.setItem("ssc_tracker_state_v3", JSON.stringify(state));
+        triggerInterfaceUpdates(true);
+        alert("📥 Restored successfully. Cloud synchronization complete.");
+      } else {
+        alert("⚠️ No saved progress found in the Cloud Archives for this profile yet.");
+      }
+    } catch (err) {
+      console.error("Manual restore failed:", err);
+      alert("❌ Restore Spell failed. Check your network or database permissions.");
+    }
+  }
 };

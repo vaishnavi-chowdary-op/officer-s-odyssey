@@ -1,5 +1,5 @@
 {
-  "name": "Officer's Odyssey",
+  "name": "Officers Odyssey",
   "description": "A fantasy-inspired cozy study journey for SSC CGL aspirants. Forge your path, complete quests, manage Pomodoro focus sessions, and rise through the ranks from Recruit to Elite Officer.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

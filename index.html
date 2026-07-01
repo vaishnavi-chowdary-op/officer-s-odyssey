@@ -223,6 +223,11 @@
               <span>Daily Quests</span>
             </button>
 
+            <button onclick="switchTab('studytracker')" id="nav-studytracker" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide border-l-2 transition-all cursor-pointer">
+              <i data-lucide="compass" class="h-4 w-4 select-none"></i>
+              <span>Study Tracker</span>
+            </button>
+
             <button onclick="switchTab('pomodoro')" id="nav-pomodoro" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide border-l-2 transition-all cursor-pointer">
               <i data-lucide="timer" class="h-4 w-4 select-none"></i>
               <span>Pomodoro Chamber</span>
@@ -332,6 +337,11 @@
                     <span id="header-officer-grade" class="text-[10px] uppercase font-mono font-bold rounded-full px-2.5 py-0.5 border leading-none bg-indigo-500/10 text-indigo-300 border-indigo-500/20">
                       CGL Cadet
                     </span>
+
+                    <div id="header-cloud-sync-status" class="flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-mono border border-slate-800 bg-slate-900/50 text-slate-500" title="Local Storage Sanctuary Mode">
+                      <i data-lucide="cloud-off" class="h-3 w-3"></i>
+                      <span>LOCAL ONLY</span>
+                    </div>
                   </div>
 
                   <!-- Stats Subtitles -->
@@ -979,71 +989,111 @@
               <p class="text-xs text-slate-400">Draft formulas, memory models, current affairs updates, and mental shortcuts securely in browser memory.</p>
             </div>
 
-            <!-- GRIMOIRE REVISION SLATE AREA -->
-            <div id="notes-desktop-hub" class="rounded-2xl border border-slate-700/40 bg-slate-900/60 p-5 backdrop-blur-xl flex flex-col min-h-[460px]">
-              <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/60">
-                <div>
-                  <h4 class="text-sm font-bold tracking-widest text-slate-300 uppercase flex items-center gap-1.5">
-                    <i data-lucide="scroll" class="h-4 w-4 text-amber-400"></i>
-                    Grimoire Revision Notes
-                  </h4>
-                  <p class="text-xs text-slate-400 mt-0.5">Pen down flashcards, formulas, and late-night shortcuts.</p>
+            <!-- RESPONSIVE GRID BOX -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              
+              <!-- GRIMOIRE REVISION SLATE AREA (LEFT COLUMN - 7/12 width) -->
+              <div id="notes-desktop-hub" class="lg:col-span-7 rounded-2xl border border-slate-700/40 bg-slate-900/60 p-5 backdrop-blur-xl flex flex-col min-h-[500px]">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/60">
+                  <div>
+                    <h4 class="text-sm font-bold tracking-widest text-slate-300 uppercase flex items-center gap-1.5">
+                      <i data-lucide="scroll" class="h-4 w-4 text-amber-400"></i>
+                      Draft Active Note
+                    </h4>
+                    <p class="text-xs text-slate-400 mt-0.5">Pen down flashcards, formulas, and late-night shortcuts.</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span id="notes-word-count" class="text-[10px] text-slate-500 font-mono hidden">0 chars</span>
+                    <span id="notes-sync-status" class="rounded-xl px-2.5 py-0.5 text-[9px] font-mono leading-none tracking-wide border uppercase bg-emerald-500/10 text-emerald-400 border-emerald-500/10">
+                      Synced
+                    </span>
+                  </div>
                 </div>
-                <div class="flex items-center gap-2">
-                  <span id="notes-word-count" class="text-[10px] text-slate-500 font-mono hidden">0 chars</span>
-                  <span id="notes-sync-status" class="rounded-xl px-2.5 py-0.5 text-[9px] font-mono leading-none tracking-wide border uppercase bg-emerald-500/10 text-emerald-400 border-emerald-500/10">
-                    Synced
+
+                <!-- Template shortcut inserts -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                  <button
+                    onclick="insertNoteTemplate('quant')"
+                    class="flex items-center gap-1.5 rounded-lg bg-slate-950/60 border border-slate-805 p-2 px-4.5 text-[11px] font-bold text-slate-300 hover:text-white hover:border-slate-700 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <i data-lucide="calculator" class="h-3.5 w-3.5 text-amber-400"></i>
+                    Math Formulas
+                  </button>
+                  <button
+                    onclick="insertNoteTemplate('vocab')"
+                    class="flex items-center gap-1.5 rounded-lg bg-slate-950/60 border border-slate-805 p-2 px-4.5 text-[11px] font-bold text-slate-300 hover:text-white hover:border-slate-700 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <i data-lucide="book-open" class="h-3.5 w-3.5 text-emerald-400"></i>
+                    Vocab / Idioms
+                  </button>
+                  <button
+                    onclick="insertNoteTemplate('ga')"
+                    class="flex items-center gap-1.5 rounded-lg bg-slate-950/60 border border-slate-805 p-2 px-4.5 text-[11px] font-bold text-slate-300 hover:text-white hover:border-slate-700 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <i data-lucide="sparkles" class="h-3.5 w-3.5 text-cyan-400"></i>
+                    GA Fact Sheet
+                  </button>
+                </div>
+
+                <!-- TITLE FIELD AND ENTER BUTTON -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                  <input
+                    type="text"
+                    id="notes-title-input"
+                    placeholder="🏷️ Enter Note Title (e.g. 'Percentage Tricks')..."
+                    class="flex-1 rounded-xl bg-slate-950/60 border border-slate-800 p-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-sans"
+                  />
+                  <button
+                    onclick="saveCurrentNoteToList()"
+                    class="flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 p-2.5 px-5 text-xs font-bold text-slate-950 shadow-md active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                  >
+                    <i data-lucide="plus-circle" class="h-3.5 w-3.5"></i>
+                    Enter Note
+                  </button>
+                </div>
+
+                <!-- Text drafting area -->
+                <div class="flex-1 min-h-[220px] relative bg-slate-950/30 rounded-xl border border-slate-800/80 focus-within:border-indigo-500/50 transition-all overflow-hidden flex flex-col">
+                  <div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-slate-800 pointer-events-none"></div>
+                  <div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-slate-800 pointer-events-none"></div>
+                  <div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-slate-800 pointer-events-none"></div>
+                  <div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-slate-800 pointer-events-none"></div>
+
+                  <textarea
+                    id="notes-textarea"
+                    oninput="handleNoteTyping(event)"
+                    placeholder="✍️ Chant your spells... Type mathematical formulae, current affairs archives, or mock exam lessons here. Every spell autosaves instantly in local cache."
+                    class="w-full flex-1 p-4 bg-transparent text-xs text-slate-205 placeholder-slate-650 border-none outline-none focus:ring-0 resize-none font-sans leading-relaxed overflow-y-auto"
+                  ></textarea>
+                </div>
+
+                <div class="mt-3 text-[10px] text-slate-500 font-mono italic flex items-center justify-between">
+                  <span>*Persists automatically in browser memory across sessions</span>
+                  <span class="flex items-center gap-1 font-sans">
+                    <i data-lucide="bookmark" class="h-3 w-3 text-amber-500 animate-pulse"></i>
+                    Scholar's Slate
                   </span>
                 </div>
               </div>
 
-              <!-- Template shortcut inserts -->
-              <div class="flex flex-wrap gap-2 mb-4">
-                <button
-                  onclick="insertNoteTemplate('quant')"
-                  class="flex items-center gap-1.5 rounded-lg bg-slate-950/60 border border-slate-805 p-2 px-4.5 text-[11px] font-bold text-slate-300 hover:text-white hover:border-slate-700 active:scale-95 transition-all cursor-pointer"
-                >
-                  <i data-lucide="calculator" class="h-3.5 w-3.5 text-amber-400"></i>
-                  Math Formulas
-                </button>
-                <button
-                  onclick="insertNoteTemplate('vocab')"
-                  class="flex items-center gap-1.5 rounded-lg bg-slate-950/60 border border-slate-805 p-2 px-4.5 text-[11px] font-bold text-slate-300 hover:text-white hover:border-slate-700 active:scale-95 transition-all cursor-pointer"
-                >
-                  <i data-lucide="book-open" class="h-3.5 w-3.5 text-emerald-400"></i>
-                  Vocab / Idioms
-                </button>
-                <button
-                  onclick="insertNoteTemplate('ga')"
-                  class="flex items-center gap-1.5 rounded-lg bg-slate-950/60 border border-slate-805 p-2 px-4.5 text-[11px] font-bold text-slate-300 hover:text-white hover:border-slate-700 active:scale-95 transition-all cursor-pointer"
-                >
-                  <i data-lucide="sparkles" class="h-3.5 w-3.5 text-cyan-400"></i>
-                  GA Fact Sheet
-                </button>
+              <!-- SAVED SPELLS ARCHIVE (RIGHT COLUMN - 5/12 width) -->
+              <div id="saved-notes-hub" class="lg:col-span-5 rounded-2xl border border-slate-700/40 bg-slate-900/60 p-5 backdrop-blur-xl flex flex-col min-h-[500px]">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/60">
+                  <div>
+                    <h4 class="text-sm font-bold tracking-widest text-slate-300 uppercase flex items-center gap-1.5">
+                      <i data-lucide="archive" class="h-4 w-4 text-indigo-400"></i>
+                      Saved Grimoire Archive
+                    </h4>
+                    <p class="text-xs text-slate-400 mt-0.5">Chronologically logged revision files & formulas.</p>
+                  </div>
+                </div>
+
+                <!-- Notes list vertical container -->
+                <div id="saved-notes-list" class="flex-1 overflow-y-auto max-h-[400px] flex flex-col gap-3 pr-1">
+                  <!-- Dyn loading list -->
+                </div>
               </div>
 
-              <!-- Text drafting area -->
-              <div class="flex-1 min-h-[280px] relative bg-slate-950/30 rounded-xl border border-slate-800/80 focus-within:border-indigo-500/50 transition-all overflow-hidden flex flex-col">
-                <div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-slate-800 pointer-events-none"></div>
-                <div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-slate-800 pointer-events-none"></div>
-                <div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-slate-800 pointer-events-none"></div>
-                <div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-slate-800 pointer-events-none"></div>
-
-                <textarea
-                  id="notes-textarea"
-                  oninput="handleNoteTyping(event)"
-                  placeholder="✍️ Chant your spells... Type mathematical formulae, current affairs archives, or mock exam lessons here. Every spell autosaves instantly in local cache."
-                  class="w-full flex-1 p-5 bg-transparent text-sm text-slate-205 placeholder-slate-600 border-none outline-none focus:ring-0 resize-none font-sans leading-relaxed overflow-y-auto"
-                ></textarea>
-              </div>
-
-              <div class="mt-4 text-[10px] text-slate-500 font-mono italic flex items-center justify-between">
-                <span>*Persists automatically in browser memory across sessions</span>
-                <span class="flex items-center gap-1 font-sans">
-                  <i data-lucide="bookmark" class="h-3 w-3 text-amber-500 animate-pulse"></i>
-                  Scholar's Slate
-                </span>
-              </div>
             </div>
 
           </section>
@@ -1341,6 +1391,60 @@
           </section>
 
 
+          <!-- --- STUDY TRACKER SECTION --- -->
+          <section id="tab-section-studytracker" class="tab-content hidden flex flex-col gap-6">
+            <div class="flex flex-col gap-1">
+              <h2 class="text-2xl font-black text-white flex items-center gap-2 tracking-tight uppercase">
+                <i data-lucide="compass" class="text-amber-400 animate-pulse"></i> Study Tracker (Odyssey)
+              </h2>
+              <p class="text-xs text-slate-400">Master your academic modules. Track your complete syllabus for SSC CGL and conquer every topic.</p>
+            </div>
+
+            <!-- OVERALL SYLLABUS PROGRESS CARD -->
+            <div id="study-tracker-overall-card" class="rounded-2xl border border-amber-500/20 bg-gradient-to-r from-slate-900 to-indigo-950/45 p-6 backdrop-blur-xl relative overflow-hidden shadow-[0_0_25px_rgba(245,158,11,0.05)]">
+              <!-- Glow background highlight -->
+              <div class="absolute -right-16 -bottom-16 h-40 w-40 rounded-full bg-amber-400/10 blur-3xl"></div>
+              
+              <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <!-- Percentage Info -->
+                <div class="flex items-center gap-4">
+                  <div class="h-16 w-16 shrink-0 rounded-2xl bg-amber-400/10 border-2 border-amber-400/30 flex flex-col items-center justify-center shadow-lg">
+                    <span id="study-overall-percent" class="text-xl sm:text-2xl font-black text-amber-300 font-mono">0%</span>
+                  </div>
+                  <div>
+                    <h3 class="text-base sm:text-lg font-bold tracking-tight text-white font-sans uppercase">Sovereign Progress</h3>
+                    <p class="text-xs text-slate-400 font-mono mt-0.5">Syllabus Completion Index</p>
+                  </div>
+                </div>
+
+                <!-- Stats Count -->
+                <div class="flex items-center gap-8 font-mono text-xs text-slate-300">
+                  <div class="flex flex-col">
+                    <span class="text-slate-500 uppercase text-[10px] tracking-wider">Completed Topics</span>
+                    <span id="study-overall-completed" class="text-sm font-extrabold text-emerald-400 mt-0.5">0 / 93</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-slate-500 uppercase text-[10px] tracking-wider">Remaining</span>
+                    <span id="study-overall-remaining" class="text-sm font-extrabold text-rose-400 mt-0.5">93</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Animated Progress Bar Container -->
+              <div class="relative mt-6 z-10">
+                <div class="h-3 w-full rounded-full bg-slate-950/80 border border-slate-800 p-0.5 overflow-hidden">
+                  <div id="study-overall-progress-bar" class="h-full rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.4)] transition-all duration-500 ease-out" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUBJECTS CARDS CONTAINER (EXPANDABLE SECTIONS) -->
+            <div id="study-subjects-list" class="flex flex-col gap-4">
+              <!-- Dynamically populated subject cards with checklists -->
+            </div>
+          </section>
+
+
           <!-- --- SETTINGS SECTION --- -->
           <section id="tab-section-settings" class="tab-content hidden flex flex-col gap-6">
             <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 md:p-8 backdrop-blur-xl relative overflow-hidden flex flex-col gap-8">
@@ -1388,6 +1492,101 @@
                       <option value="enabled" selected>🔊 Enabled Chords</option>
                       <option value="disabled">🔇 Silent Mode</option>
                     </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- --- CLOUD ACCOUNT SECURE ARCHIVE SECTION --- -->
+              <div class="relative z-10 rounded-2xl border border-slate-800 bg-slate-950/20 p-6 md:p-8 backdrop-blur-xl overflow-hidden flex flex-col gap-6 max-w-2xl mx-auto w-full">
+                <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-5 pointer-events-none"></div>
+                
+                <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/60 pb-5">
+                  <div>
+                    <span class="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Divine Cloud Preservation</span>
+                    <h3 class="text-base font-bold tracking-tight text-white mt-1.5 font-sans">Officer Cloud Archives</h3>
+                    <p class="text-[11px] text-slate-400 font-sans mt-1">Backup your study hours, streaks, custom notes, mock tests, and level milestones forever in your secure, real-time database.</p>
+                  </div>
+                  <div id="cloud-connection-badge" class="h-10 w-10 shrink-0 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-500">
+                    <i data-lucide="cloud-off" class="h-5 w-5"></i>
+                  </div>
+                </div>
+
+                <div class="relative z-10 w-full flex flex-col gap-4">
+                  <!-- Synced Status Header (only visible when logged in) -->
+                  <div id="cloud-logged-in-container" class="hidden p-5 rounded-xl border border-emerald-500/30 bg-emerald-950/10 flex flex-col gap-3">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                      <div class="flex items-center gap-2">
+                        <div class="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                        <span class="text-xs font-bold text-slate-200">Enlisted: <span id="cloud-user-email" class="text-emerald-300 font-mono"></span></span>
+                      </div>
+                      <button onclick="handleCloudLogout()" class="px-3 py-1 rounded bg-slate-950 border border-slate-800 hover:border-slate-700 hover:bg-slate-900 text-slate-300 font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer">
+                        Sign Out Authority
+                      </button>
+                    </div>
+                    <div class="text-[11px] text-slate-400 flex items-center gap-1.5">
+                      <i data-lucide="shield-check" class="h-4 w-4 text-emerald-400 shrink-0"></i>
+                      <span>Your progress is backed up and saved automatically to the cloud!</span>
+                    </div>
+                    <div class="flex items-center gap-2 pt-1.5 border-t border-slate-800/80 mt-1">
+                      <button onclick="triggerImmediateCloudBackup()" class="flex-1 py-2 text-center text-[10px] font-bold uppercase tracking-wider bg-indigo-650/30 hover:bg-indigo-600/50 text-indigo-300 rounded border border-indigo-500/30 transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                        <i data-lucide="upload-cloud" class="h-3.5 w-3.5"></i> Force Cloud Save
+                      </button>
+                      <button onclick="triggerImmediateCloudRestore()" class="flex-1 py-2 text-center text-[10px] font-bold uppercase tracking-wider bg-amber-650/30 hover:bg-amber-600/50 text-amber-300 rounded border border-amber-500/30 transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                        <i data-lucide="download-cloud" class="h-3.5 w-3.5"></i> Restore Progress
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Login/Register Form (only visible when logged out) -->
+                  <div id="cloud-logged-out-container" class="flex flex-col gap-4">
+                    <div class="p-4 rounded-xl border border-slate-850 bg-slate-950/45 text-center">
+                      <p class="text-xs text-slate-300">You are currently using <strong>Local Sanctuary Mode</strong>. Connect your real Google account below to back up your progress eternally across devices so you never lose it!</p>
+                    </div>
+                    
+                    <div class="bg-slate-950/80 p-6 rounded-xl border border-slate-850 flex flex-col gap-4 max-w-md mx-auto w-full">
+                      <h4 class="text-xs font-bold tracking-wider uppercase text-indigo-400 font-mono text-center">Enlist Your Cloud Account</h4>
+                      
+                      <!-- RECOMMENDED: GOOGLE SIGN IN BUTTON (WORKS INSTANTLY OUT OF THE BOX) -->
+                      <button id="google-login-btn" onclick="handleGoogleLogin()" class="w-full flex items-center justify-center gap-2.5 py-3 bg-white hover:bg-slate-100 rounded-lg text-slate-950 text-xs font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-md shadow-black/40 hover:shadow-indigo-500/10 active:scale-98">
+                        <!-- Google Logo Vector -->
+                        <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" fill="#FBBC05"/>
+                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        Sign In with Google 🛡️
+                      </button>
+
+                      <div class="flex items-center justify-between gap-3 text-slate-600 font-mono text-[9px] uppercase tracking-wider my-1">
+                        <span class="h-[1px] bg-slate-850 flex-1"></span>
+                        <span>or use email credentials</span>
+                        <span class="h-[1px] bg-slate-850 flex-1"></span>
+                      </div>
+                      
+                      <div class="flex flex-col gap-1">
+                        <label class="text-[9px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Email Scroll Address</label>
+                        <input type="email" id="cloud-auth-email" placeholder="officer@secretariat.gov" class="bg-slate-950 border border-slate-800 rounded p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-400" />
+                      </div>
+
+                      <div class="flex flex-col gap-1">
+                        <label class="text-[9px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Secret Pass-Incantation</label>
+                        <input type="password" id="cloud-auth-password" placeholder="••••••••" class="bg-slate-950 border border-slate-800 rounded p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-400" />
+                      </div>
+
+                      <div class="flex gap-2.5 pt-1">
+                        <button onclick="handleCloudLogin()" class="flex-1 py-2 bg-indigo-900/30 hover:bg-indigo-900/50 border border-indigo-700/30 rounded text-center text-xs font-bold text-indigo-300 uppercase tracking-wider transition-all cursor-pointer">
+                          Sign In 🔑
+                        </button>
+                        <button onclick="handleCloudRegister()" class="flex-1 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-850 rounded text-center text-xs font-bold text-slate-200 uppercase tracking-wider transition-all cursor-pointer">
+                          Create Account 🛡️
+                        </button>
+                      </div>
+                      
+                      <div class="text-center font-mono text-[9px] text-slate-500 leading-normal">
+                        <span>Google Sign-In is configured & fully enabled out-of-the-box. Email logins may require enabling the email/password provider in your Firebase console.</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

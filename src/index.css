@@ -26,3 +26,48 @@
   background: rgba(148, 163, 184, 0.4);
 }
 
+/* --- GAMIFIED FANTASY ANIMATIONS & TRANSITIONS --- */
+@keyframes magical-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.magical-entrance {
+  animation: magical-entrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes subtle-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.04);
+    border-color: rgba(245, 158, 11, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+}
+
+.subtle-glow {
+  animation: subtle-glow 5s infinite ease-in-out;
+}
+
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.float-gentle {
+  animation: float-gentle 6s infinite ease-in-out;
+}
+
+
