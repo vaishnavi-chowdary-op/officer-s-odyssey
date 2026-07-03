@@ -100,6 +100,14 @@ function getLegacyOfficerLevelTitle(lvl) {
   }
 }
 
+// Helper to get local date string in YYYY-MM-DD format
+function getLocalDateString(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 // --- INITIAL STATE ---
 let state = {
   username: "Aspirant Officer",
@@ -109,6 +117,8 @@ let state = {
   totalHours: 0.0,
   pomodoroSessions: 0,
   lastActiveDate: "",
+  lastCompletionDate: "",
+  lastStreakUpdateDate: "",
   note: "",
   startDate: "",
   todaysFocus: "",
@@ -186,47 +196,59 @@ function getCalculatedRecoveryTokens() {
 }
 
 function testAndApplyRestDayTaken() {
-  const todayStr = new Date().toLocaleDateString();
+  const todayStr = getLocalDateString();
   const lastActiveStr = state.lastActiveDate;
   
   if (lastActiveStr && lastActiveStr !== todayStr) {
-    const lastActive = new Date(lastActiveStr);
-    const today = new Date(todayStr);
-    
     // Clear today's checklist checkbox statuses for the fresh sunrise
     state.tasks.forEach(t => t.completed = false);
+    state.lastActiveDate = todayStr;
+    saveStateToStorage();
+  } else if (!lastActiveStr) {
+    state.lastActiveDate = todayStr;
+    saveStateToStorage();
+  }
+
+  // Handle missed days and recovery tokens based on lastCompletionDate
+  if (state.streak > 0 && state.lastCompletionDate) {
+    const lastCompletion = new Date(state.lastCompletionDate + "T00:00:00");
+    const today = new Date(todayStr + "T00:00:00");
+    const msDiff = today.getTime() - lastCompletion.getTime();
+    const daysSinceLastCompletion = Math.round(msDiff / (1000 * 60 * 60 * 24));
     
-    // Days difference calculation
-    const msDiff = today.getTime() - lastActive.getTime();
-    const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+    // e.g. if last completion was yesterday (daysSinceLastCompletion === 1), missedDays = 0.
+    // If last completion was 2 days ago, missedDays = 1 (meaning they missed exactly 1 day).
+    const missedDays = daysSinceLastCompletion - 1;
     
-    if (daysDiff >= 1) {
-      // User missed one or more days entirely
-      let tokensNeeded = daysDiff;
+    if (missedDays >= 1) {
+      let tokensNeeded = missedDays;
       const rec = getCalculatedRecoveryTokens();
       
       if (rec.remaining >= tokensNeeded) {
         // We have enough tokens to fully auto-protect the streak!
         state.tokensConsumed = (state.tokensConsumed || 0) + tokensNeeded;
+        
+        // Since we protected the missed days, yesterday is now considered protected/completed.
+        // This ensures today's study continues the streak consecutively!
+        const yesterday = new Date(today.getTime() - (24 * 60 * 60 * 1000));
+        state.lastCompletionDate = getLocalDateString(yesterday);
         state.lastRestDayDate = todayStr;
-        alert(`🌙 Rest Day Automatically Taken! ${tokensNeeded} Streak Recovery Token(s) consumed. Your consecutive study streak is saved safely! ("Even heroes require rest.")`);
-      } else if (rec.remaining > 0) {
-        // Partial protection available
-        const partiallySolved = rec.remaining;
-        state.tokensConsumed = (state.tokensConsumed || 0) + partiallySolved;
-        state.streak = 0; // Lost streak since gap was wider than tokens
-        alert(`🌙 Some Rest Days Taken, but remaining shields ran dry. Streak refreshed. Consistency is built over months!`);
+        
+        alert(`🌙 Rest Day Automatically Taken! ${tokensNeeded} Streak Recovery Token(s) consumed. Your consecutive study streak of ${state.streak} days is saved safely! ("Even heroes require rest.")`);
       } else {
-        // No shields left
+        // Not enough tokens to bridge the gap
+        if (rec.remaining > 0) {
+          state.tokensConsumed = (state.tokensConsumed || 0) + rec.remaining;
+        }
         state.streak = 0;
-        alert(`🌙 Rest Day Taken! Scribe note: Consistency is built over months, not days. Let's restart the streak together tonight!`);
+        state.lastCompletionDate = "";
+        alert(`🌙 Missed study day(s)! Scribe note: Consistency is built over months, not days. Let's restart your streak today!`);
       }
+      saveStateToStorage();
     }
-    
-    state.lastActiveDate = todayStr;
-    saveStateToStorage();
-  } else if (!lastActiveStr) {
-    state.lastActiveDate = todayStr;
+  } else if (state.streak > 0 && !state.lastCompletionDate) {
+    // Fallback if streak exists but lastCompletionDate is missing
+    state.lastCompletionDate = todayStr;
     saveStateToStorage();
   }
 }
@@ -247,6 +269,13 @@ function loadStateFromStorage() {
 
   if (!state.startDate) {
     state.startDate = new Date().toISOString();
+  }
+
+  if (!state.lastCompletionDate && state.streak > 0) {
+    state.lastCompletionDate = state.lastActiveDate || getLocalDateString();
+  }
+  if (!state.lastStreakUpdateDate) {
+    state.lastStreakUpdateDate = "";
   }
 
   // Setup default rank arrays and parameters
@@ -1129,10 +1158,39 @@ window.toggleTaskCompleted = function(id) {
   // Check if all quests completed today -> Confetti blast!
   const isEverySingleTaskComplete = state.tasks.length > 0 && state.tasks.every(t => t.completed);
   if (isEverySingleTaskComplete && quest.completed) {
-    spawnConfettiRain();
-    playGoldenSuccessChord();
-    state.streak += 1;
-    alert("👑 ALL DAILY QUESTS CONQUERED! Your streak has updated! You earned the Ultimate Sovereign bonus.");
+    const todayStr = getLocalDateString();
+    
+    // Only increment streak once per day to prevent double-incrementing on uncheck/recheck
+    if (state.lastStreakUpdateDate !== todayStr) {
+      spawnConfettiRain();
+      playGoldenSuccessChord();
+      
+      // If streak is 0 or no lastCompletionDate exists, start with a streak of 1
+      if (state.streak === 0 || !state.lastCompletionDate) {
+        state.streak = 1;
+      } else {
+        const lastCompletion = new Date(state.lastCompletionDate + "T00:00:00");
+        const today = new Date(todayStr + "T00:00:00");
+        const msDiff = today.getTime() - lastCompletion.getTime();
+        const daysSinceLastCompletion = Math.round(msDiff / (1000 * 60 * 60 * 24));
+        
+        if (daysSinceLastCompletion <= 1) {
+          // Consecutive (1 day since last completion) or same day (<= 1)
+          state.streak += 1;
+        } else {
+          // Gap exists (fallback, although normally handled by rest days algorithm on load)
+          state.streak = 1;
+        }
+      }
+      
+      state.lastCompletionDate = todayStr;
+      state.lastStreakUpdateDate = todayStr;
+      alert(`👑 ALL DAILY QUESTS CONQUERED! Your consecutive study streak is now ${state.streak} day(s)! You earned the Ultimate Sovereign bonus.`);
+    } else {
+      // Already completed today: trigger visual celebrations without double-adding streak
+      spawnConfettiRain();
+      playGoldenSuccessChord();
+    }
   }
 
   saveStateToStorage();
@@ -2344,7 +2402,9 @@ window.executeAbsoluteReset = function() {
   state.streak = 0;
   state.totalHours = 0.0;
   state.pomodoroSessions = 0;
-  state.lastActiveDate = new Date().toLocaleDateString();
+  state.lastActiveDate = getLocalDateString();
+  state.lastCompletionDate = "";
+  state.lastStreakUpdateDate = "";
   state.note = "";
   state.savedNotes = [];
   state.startDate = new Date().toISOString(); // new start date
