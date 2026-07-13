@@ -654,6 +654,8 @@ function handleTimerPeriodCompleted() {
 
     addExperience(50);
     spawnXpFloatPopup(50);
+    
+    registerStudyActivity(false); // register activity but defer save
 
     alert("🎉 Focus Session Completed Successfully! You generated focus study hours (+50 XP). Time for rest!");
     setTimerMode("shortRest");
@@ -941,6 +943,11 @@ window.handleMockSubmit = function(event) {
   notesInput.value = "";
   dateInput.value = new Date().toISOString().split("T")[0];
 
+  const todayStr = getLocalDateString();
+  if (date === todayStr) {
+    registerStudyActivity(false); // register but defer save
+  }
+
   saveStateToStorage();
   playSingleMagicalTick();
   alert("🔮 Mock Record Spell Registered Successfully!");
@@ -1130,6 +1137,50 @@ window.deleteTaskItem = function(id) {
   saveStateToStorage();
 };
 
+function registerStudyActivity(shouldSave = true) {
+  const todayStr = getLocalDateString();
+  
+  if (state.lastStreakUpdateDate !== todayStr) {
+    // If streak is 0 or no lastCompletionDate exists, start with a streak of 1
+    if (state.streak === 0 || !state.lastCompletionDate) {
+      state.streak = 1;
+    } else {
+      const lastCompletion = new Date(state.lastCompletionDate + "T00:00:00");
+      const today = new Date(todayStr + "T00:00:00");
+      const msDiff = today.getTime() - lastCompletion.getTime();
+      const daysSinceLastCompletion = Math.round(msDiff / (1000 * 60 * 60 * 24));
+      
+      if (daysSinceLastCompletion <= 1) {
+        // Consecutive (1 day since last completion) or same day (<= 1)
+        state.streak += 1;
+      } else {
+        // Gap exists (fallback, although normally handled by rest days algorithm on load)
+        state.streak = 1;
+      }
+    }
+    
+    state.lastCompletionDate = todayStr;
+    state.lastStreakUpdateDate = todayStr;
+    
+    if (shouldSave) {
+      saveStateToStorage();
+    }
+
+    spawnConfettiRain();
+    playGoldenSuccessChord();
+    
+    alert(`🔥 STUDY STREAK CONTINUED! Your consecutive study streak is now ${state.streak} day(s)! Keep up the incredible work, Officer.`);
+  } else {
+    // Already did a study activity today, just ensure lastCompletionDate is todayStr
+    if (state.lastCompletionDate !== todayStr) {
+      state.lastCompletionDate = todayStr;
+      if (shouldSave) {
+        saveStateToStorage();
+      }
+    }
+  }
+}
+
 window.toggleTaskCompleted = function(id) {
   const quest = state.tasks.find(t => t.id === id);
   if (!quest) return;
@@ -1140,6 +1191,7 @@ window.toggleTaskCompleted = function(id) {
     addExperience(quest.xpGained);
     spawnXpFloatPopup(quest.xpGained);
     playSingleMagicalTick();
+    registerStudyActivity(false); // register activity but defer save
   } else {
     state.xp -= quest.xpGained;
     if (state.cumulativeXp !== undefined) {
@@ -1155,42 +1207,14 @@ window.toggleTaskCompleted = function(id) {
     }
   }
 
-  // Check if all quests completed today -> Confetti blast!
+  // Check if all quests completed today -> Special Sovereign Reward!
   const isEverySingleTaskComplete = state.tasks.length > 0 && state.tasks.every(t => t.completed);
   if (isEverySingleTaskComplete && quest.completed) {
-    const todayStr = getLocalDateString();
-    
-    // Only increment streak once per day to prevent double-incrementing on uncheck/recheck
-    if (state.lastStreakUpdateDate !== todayStr) {
-      spawnConfettiRain();
-      playGoldenSuccessChord();
-      
-      // If streak is 0 or no lastCompletionDate exists, start with a streak of 1
-      if (state.streak === 0 || !state.lastCompletionDate) {
-        state.streak = 1;
-      } else {
-        const lastCompletion = new Date(state.lastCompletionDate + "T00:00:00");
-        const today = new Date(todayStr + "T00:00:00");
-        const msDiff = today.getTime() - lastCompletion.getTime();
-        const daysSinceLastCompletion = Math.round(msDiff / (1000 * 60 * 60 * 24));
-        
-        if (daysSinceLastCompletion <= 1) {
-          // Consecutive (1 day since last completion) or same day (<= 1)
-          state.streak += 1;
-        } else {
-          // Gap exists (fallback, although normally handled by rest days algorithm on load)
-          state.streak = 1;
-        }
-      }
-      
-      state.lastCompletionDate = todayStr;
-      state.lastStreakUpdateDate = todayStr;
-      alert(`👑 ALL DAILY QUESTS CONQUERED! Your consecutive study streak is now ${state.streak} day(s)! You earned the Ultimate Sovereign bonus.`);
-    } else {
-      // Already completed today: trigger visual celebrations without double-adding streak
-      spawnConfettiRain();
-      playGoldenSuccessChord();
-    }
+    addExperience(100);
+    spawnXpFloatPopup(100);
+    spawnConfettiRain();
+    playGoldenSuccessChord();
+    alert(`👑 SUPREME CONQUEROR BONUS! All daily quests conquered today! You claimed a +100 XP Sovereign bonus!`);
   }
 
   saveStateToStorage();
